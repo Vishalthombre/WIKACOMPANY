@@ -1,0 +1,190 @@
+/* src/index.css */
+
+/* --- WIKA BRAND VARIABLES --- */
+:root {
+  --wika-blue: #003399;       /* Official Primary Blue */
+  --wika-dark-blue: #002266;  /* For hover states */
+  --wika-orange: #FF6600;     /* Official Accent/Action Color */
+  --bg-light: #F4F6F8;        /* Professional Light Gray Background */
+  --text-dark: #333333;       /* Standard dark text */
+  --text-grey: #666666;       /* Subtitles */
+  --white: #ffffff;
+}
+
+/* --- GLOBAL RESET --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif; /* Clean Sans-Serif */
+  background-color: var(--bg-light); 
+  color: var(--text-dark);
+  line-height: 1.5;
+}
+
+/* --- TYPOGRAPHY --- */
+h1, h2, h3, h4, h5 {
+  font-weight: 600;
+  color: var(--wika-blue); /* Headings are WIKA Blue */
+  margin-bottom: 0.5rem;
+}
+
+/* --- BUTTONS (Global Styles) --- */
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Primary Action Button (e.g., Login, Submit) */
+.btn-primary, .action-btn-primary {
+  background-color: var(--wika-orange); /* WIKA Orange for Actions */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px; /* Sharp/Slightly rounded corners like WIKA site */
+  font-weight: bold;
+  transition: background-color 0.3s;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:hover, .action-btn-primary:hover {
+  background-color: #e65c00; /* Darker Orange */
+}
+
+/* Secondary Button (e.g., Back, Cancel) */
+.btn-secondary, .btn-back {
+  background-color: white;
+  color: var(--text-dark);
+  border: 1px solid #ccc;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover, .btn-back:hover {
+  background-color: #f0f0f0;
+  border-color: #999;
+}
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #e0e0e0; 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--wika-blue); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--wika-dark-blue); 
+}
+/* --- Loading Overlay (Blurred Background) --- */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5); /* Semi-transparent white */
+  backdrop-filter: blur(5px); /* This blurs the content behind it */
+  z-index: 9999; /* Sit on top of everything */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(0, 51, 153, 0.2);
+  border-left-color: #003399;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --- TOAST NOTIFICATIONS (Success/Error) --- */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  border-left: 5px solid #ccc;
+  animation: slideInRight 0.3s ease;
+}
+
+.toast.success { border-left-color: #2E7D32; }
+.toast.error { border-left-color: #D32F2F; }
+.toast.info { border-left-color: #003399; }
+
+.toast-icon { font-size: 1.2rem; }
+.toast-msg { color: #333; font-weight: 500; font-size: 0.95rem; }
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* --- CONFIRMATION MODAL --- */
+.confirm-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 10001;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s;
+}
+
+.confirm-box {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  text-align: center;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.confirm-title { font-size: 1.2rem; font-weight: 700; color: #333; margin-bottom: 10px; }
+.confirm-desc { color: #666; margin-bottom: 25px; font-size: 0.95rem; }
+.confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+.btn-confirm-yes { background: #003399; color: white; border: none; padding: 10px 20px; borderRadius: 6px; cursor: pointer; font-weight: 600; }
+.btn-confirm-no { background: #eee; color: #333; border: none; padding: 10px 20px; borderRadius: 6px; cursor: pointer; font-weight: 600; }
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

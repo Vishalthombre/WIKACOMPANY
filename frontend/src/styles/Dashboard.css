@@ -1,0 +1,164 @@
+/* src/styles/Dashboard.css */
+
+.dashboard-wrapper {
+    background-color: #f3f4f6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-content {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    flex: 1; /* Pushes footer down if you have one */
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- HEADER SECTION --- */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 25px;
+    border-left: 5px solid #003399;
+}
+
+.header-title h1 {
+    font-size: 1.5rem;
+    color: #333;
+    margin: 0;
+}
+
+.header-title p {
+    margin: 5px 0 0 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.admin-btn {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s;
+}
+
+.admin-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- MODULES GRID (Responsive) --- */
+.modules-grid {
+    display: grid;
+    /* Desktop: 3 cards per row, Mobile: 2 cards per row */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+    gap: 15px;
+}
+
+.module-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 15px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 160px; /* Fixed height for uniformity */
+}
+
+.module-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    border-color: #003399;
+}
+
+.card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: #e3f2fd;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.module-card h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.enter-text {
+    font-size: 0.8rem;
+    color: #003399;
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+/* --- MOBILE OPTIMIZATION (< 600px) --- */
+@media (max-width: 600px) {
+    .dashboard-content {
+        padding: 15px;
+    }
+
+    /* Stack header items if title is long, otherwise keep row */
+    .dashboard-header {
+        padding: 15px;
+        flex-direction: row; 
+        gap: 10px;
+    }
+
+    .header-title h1 {
+        font-size: 1.2rem;
+    }
+    
+    .header-title p {
+        font-size: 0.8rem;
+    }
+
+    /* Admin button icon only on very small screens? optional */
+    .admin-btn span {
+        display: none; /* Hides text "System Admin", keeps icon */
+    }
+    .admin-btn {
+        padding: 10px; /* Square button */
+    }
+
+    /* Force 2 columns on mobile for "App Icon" feel */
+    .modules-grid {
+        grid-template-columns: 1fr 1fr; 
+        gap: 12px;
+    }
+
+    .module-card {
+        height: 140px; /* Slightly smaller on mobile */
+        padding: 15px 10px;
+    }
+    
+    .card-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 2rem;
+    }
+}

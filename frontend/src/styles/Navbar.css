@@ -1,0 +1,62 @@
+/* src/styles/Navbar.css */
+.navbar {
+    width: 100%;
+    height: 70px; /* Fixed height for stability */
+    background-color: var(--wika-blue); /* Official WIKA Blue */
+    color: var(--white);
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15); /* Stronger, professional shadow */
+    
+    /* STICKY BEHAVIOR */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-size: 1.6rem;
+    font-weight: 800; /* Bolder font like the WIKA logo */
+    letter-spacing: 0.5px;
+}
+
+.navbar-user-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info {
+    font-size: 0.95rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.btn-logout {
+    background-color: rgba(255, 255, 255, 0.1); /* Transparent white */
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background-color: var(--white);
+    color: var(--wika-blue);
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .navbar {
+        padding: 0 15px;
+        height: 60px; /* Slightly smaller on mobile */
+    }
+    .navbar-brand { font-size: 1.3rem; }
+    .user-info { display: none; } /* Hide name on small screens */
+}

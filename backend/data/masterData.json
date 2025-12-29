@@ -1,0 +1,604 @@
+{
+  "employees": [
+    {
+      "GlobalID": "G001",
+      "Name": "Vishal Thombre",
+      "Email": "vishal@wikamaint.com",
+      "PasswordHash": "admin123",
+      "Location": "Pune",
+      "Phone": "9876543210",
+      "IsActive": true,
+      "IsSystemAdmin": true
+    },
+    {
+      "GlobalID": "G002",
+      "Name": "Rahul Sharma",
+      "Email": "rahul@wikamaint.com",
+      "PasswordHash": "user123",
+      "Location": "Mumbai",
+      "Phone": "1122334455",
+      "IsActive": true
+    },
+    {
+      "GlobalID": "G003",
+      "Name": "Suresh Tech",
+      "Email": "suresh@wika.com",
+      "PasswordHash": "123",
+      "Location": "Pune",
+      "IsActive": true
+    },
+    {
+      "GlobalID": "G005",
+      "Name": "Gauraw Deshmukh",
+      "Email": "test@wika.com",
+      "Location": "pune",
+      "PasswordHash": "welcome123",
+      "IsActive": true,
+      "IsSystemAdmin": false
+    },
+    {
+      "GlobalID": "G0006",
+      "Name": "Shubham Polakhare",
+      "Email": "shubham@wika.com",
+      "Location": "Pune",
+      "PasswordHash": "welcome123",
+      "IsActive": true,
+      "IsSystemAdmin": false
+    },
+    {
+      "GlobalID": "G00008",
+      "Name": "Dipak Sharma",
+      "Email": "dipak@wika.com",
+      "Location": "pune",
+      "PasswordHash": "welcome123",
+      "IsActive": true,
+      "IsSystemAdmin": false
+    }
+  ],
+  "departments": [
+    {
+      "Code": "FAC",
+      "Name": "Facility"
+    },
+    {
+      "Code": "BRK",
+      "Name": "Breakdown"
+    },
+    {
+      "Code": "SFT",
+      "Name": "Safety"
+    },
+    {
+      "Code": "KZN",
+      "Name": "Kaizen"
+    },
+    {
+      "Code": "5S",
+      "Name": "5S Audit"
+    }
+  ],
+  "roles": [
+    {
+      "Code": "ADM",
+      "Name": "Admin"
+    },
+    {
+      "Code": "PLN",
+      "Name": "Planner"
+    },
+    {
+      "Code": "TEC",
+      "Name": "Technician"
+    },
+    {
+      "Code": "USR",
+      "Name": "Ticket Raiser"
+    }
+  ],
+  "employeeDepartmentRoles": [
+    {
+      "GlobalID": "G002",
+      "DepartmentCode": "FAC",
+      "RoleCode": "ADM"
+    },
+    {
+      "GlobalID": "G002",
+      "DepartmentCode": "FAC",
+      "RoleCode": "PLN"
+    },
+    {
+      "GlobalID": "G002",
+      "DepartmentCode": "FAC",
+      "RoleCode": "TEC"
+    },
+    {
+      "GlobalID": "G002",
+      "DepartmentCode": "FAC",
+      "RoleCode": "USR"
+    },
+    {
+      "GlobalID": "G003",
+      "DepartmentCode": "FAC",
+      "RoleCode": "TEC"
+    },
+    {
+      "GlobalID": "G003",
+      "DepartmentCode": "FAC",
+      "RoleCode": "USR"
+    },
+    {
+      "GlobalID": "G005",
+      "DepartmentCode": "FAC",
+      "RoleCode": "ADM"
+    },
+    {
+      "GlobalID": "G005",
+      "DepartmentCode": "FAC",
+      "RoleCode": "PLN"
+    },
+    {
+      "GlobalID": "G005",
+      "DepartmentCode": "FAC",
+      "RoleCode": "TEC"
+    },
+    {
+      "GlobalID": "G005",
+      "DepartmentCode": "FAC",
+      "RoleCode": "USR"
+    },
+    {
+      "GlobalID": "G0006",
+      "DepartmentCode": "FAC",
+      "RoleCode": "PLN"
+    },
+    {
+      "GlobalID": "G0006",
+      "DepartmentCode": "FAC",
+      "RoleCode": "USR"
+    },
+    {
+      "GlobalID": "G0006",
+      "DepartmentCode": "FAC",
+      "RoleCode": "TEC"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "FAC",
+      "RoleCode": "PLN"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "FAC",
+      "RoleCode": "USR"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "SFT",
+      "RoleCode": "ADM"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "BRK",
+      "RoleCode": "PLN"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "KZN",
+      "RoleCode": "ADM"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "5S",
+      "RoleCode": "ADM"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "FAC",
+      "RoleCode": "TEC"
+    },
+    {
+      "GlobalID": "G001",
+      "DepartmentCode": "FAC",
+      "RoleCode": "ADM"
+    }
+  ],
+  "tickets": [
+    {
+      "TicketID": "TKT-9623",
+      "description": "sample ticket raised by rahul",
+      "priority": "High",
+      "building": "Building No. 1 (Main Building)",
+      "area": "First Floor",
+      "subArea": "Planning Office",
+      "keyword": "Air Lock",
+      "raiserID": "G002",
+      "raiserName": "Rahul Sharma",
+      "Status": "Completed",
+      "AssignedTo": "G002",
+      "AssignedToName": "Rahul Sharma",
+      "CreatedAt": "2025-12-24T18:34:18.223Z",
+      "UpdatedAt": "2025-12-24T18:34:37.764Z"
+    },
+    {
+      "TicketID": "TKT-3609",
+      "description": "sample ticket by rahul",
+      "priority": "Medium",
+      "building": "Building No. 1 (Main Building)",
+      "area": "Washroom",
+      "subArea": "B1-GF 03 - M - CNC",
+      "keyword": "Crack",
+      "raiserID": "G002",
+      "raiserName": "Rahul Sharma",
+      "Status": "Assigned",
+      "AssignedTo": "G002",
+      "AssignedToName": "Rahul Sharma",
+      "CreatedAt": "2025-12-24T18:45:26.269Z",
+      "PlannedBy": "Rahul Sharma",
+      "UpdatedAt": "2025-12-24T18:45:45.825Z"
+    },
+    {
+      "TicketID": "TKT-5253",
+      "description": "sample",
+      "priority": "Medium",
+      "building": "Building No. 1 (Main Building)",
+      "area": "Ground Floor",
+      "subArea": "Assembly Shop",
+      "keyword": "Abnormal Condition",
+      "raiserID": "G002",
+      "raiserName": "Rahul Sharma",
+      "Status": "Completed",
+      "AssignedTo": "G0006",
+      "AssignedToName": "Shubham Polakhare",
+      "CreatedAt": "2025-12-24T18:46:08.952Z",
+      "PlannedBy": "Shubham Polakhare",
+      "UpdatedAt": "2025-12-24T19:24:41.369Z"
+    },
+    {
+      "TicketID": "TKT-4405",
+      "description": "sample by shubham",
+      "priority": "High",
+      "building": "Building No. 1 (Main Building)",
+      "area": "Ground Floor",
+      "subArea": "Assembly Shop",
+      "keyword": "Abnormal Condition",
+      "raiserID": "G0006",
+      "raiserName": "Shubham Polakhare",
+      "Status": "Completed",
+      "AssignedTo": "G0006",
+      "AssignedToName": "Shubham Polakhare",
+      "CreatedAt": "2025-12-24T19:24:18.798Z",
+      "PlannedBy": "Shubham Polakhare",
+      "UpdatedAt": "2025-12-24T19:24:43.157Z"
+    },
+    {
+      "TicketID": "TKT-4309",
+      "description": "ss;ckjnsdd",
+      "priority": "Critical",
+      "building": "Building No. 3 (Canteen Building)",
+      "area": "First Floor",
+      "subArea": "Guest Room",
+      "keyword": "Accident",
+      "raiserID": "G001",
+      "raiserName": "Vishal Thombre",
+      "Status": "Assigned",
+      "AssignedTo": "G0006",
+      "AssignedToName": "Shubham Polakhare",
+      "CreatedAt": "2025-12-26T10:49:18.514Z",
+      "PlannedBy": "Vishal Thombre",
+      "UpdatedAt": "2025-12-26T10:49:31.973Z"
+    },
+    {
+      "TicketID": "TKT-7636",
+      "description": "ticket raised by vishal",
+      "priority": "High",
+      "building": "Building No. 3 (Canteen Building)",
+      "area": "Ground Floor",
+      "subArea": "Dining Area",
+      "keyword": "Disengaged",
+      "raiserID": "G001",
+      "raiserName": "Vishal Thombre",
+      "Status": "Completed",
+      "AssignedTo": "G001",
+      "AssignedToName": "Vishal Thombre",
+      "CreatedAt": "2025-12-28T05:00:35.763Z",
+      "PlannedBy": "Vishal Thombre",
+      "UpdatedAt": "2025-12-28T05:00:54.573Z"
+    },
+    {
+      "TicketID": "TKT-3852",
+      "description": "sample ticket",
+      "building": "Building No. 2 (Utility - 1 Building)",
+      "area": "Ground Floor",
+      "subArea": "Compresser Room",
+      "keyword": "Noisy",
+      "raiserID": "G001",
+      "raiserName": "Vishal Thombre",
+      "Status": "Completed",
+      "AssignedTo": "G001",
+      "AssignedToName": "Vishal Thombre",
+      "CreatedAt": "2025-12-29T06:49:01.921Z",
+      "PlannedBy": "Vishal Thombre",
+      "UpdatedAt": "2025-12-29T06:49:38.212Z"
+    },
+    {
+      "TicketID": "TKT-9693",
+      "description": "sample ticket raised by vishal ",
+      "building": "Building No. 1 (Main Building)",
+      "area": "Ground Floor",
+      "subArea": "Assembly Shop",
+      "keyword": "Abnormal Condition",
+      "raiserID": "G001",
+      "raiserName": "Vishal Thombre",
+      "Status": "Completed",
+      "AssignedTo": "G001",
+      "AssignedToName": "Vishal Thombre",
+      "CreatedAt": "2025-12-29T06:52:39.988Z",
+      "PlannedBy": "Vishal Thombre",
+      "UpdatedAt": "2025-12-29T06:53:01.652Z"
+    },
+    {
+      "TicketID": "TKT-6124",
+      "description": "sample ticket ",
+      "building": "Building No. 2 (Utility - 1 Building)",
+      "area": "Ground Floor",
+      "subArea": "Panel Room",
+      "keyword": "Irregular Temp.",
+      "raiserID": "G001",
+      "raiserName": "Vishal Thombre",
+      "Status": "Completed",
+      "AssignedTo": "G001",
+      "AssignedToName": "Vishal Thombre",
+      "CreatedAt": "2025-12-29T06:56:21.889Z",
+      "PlannedBy": "Vishal Thombre",
+      "UpdatedAt": "2025-12-29T06:56:35.947Z"
+    }
+  ],
+  "locations": [
+    {
+      "id": "B1",
+      "name": "Building No. 1 (Main Building)",
+      "areas": [
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Assembly Shop",
+            "CNC Shop",
+            "Purchase",
+            "Reception",
+            "NABL / Quality",
+            "POS",
+            "CMM",
+            "Store",
+            "DSS",
+            "CT"
+          ]
+        },
+        {
+          "name": "First Floor",
+          "subAreas": [
+            "HR",
+            "Manager Cabin",
+            "Conference Room",
+            "Planning Office",
+            "Plant Head Cabin",
+            "Accounts / Finance"
+          ]
+        },
+        {
+          "name": "Washroom",
+          "subAreas": [
+            "B1-GF 01 - M - Reception",
+            "B1-GF 02 - M - Assembly",
+            "B1-GF 03 - M - CNC",
+            "B1-GF 04 - M - Maint",
+            "B1-GF 01 - F - Reception",
+            "B1-GF 02 - F - Maint",
+            "B1-FF 01 - M - Kaizan Room",
+            "B1-FF 01 - F - HR"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "Building No. 2 (Utility - 1 Building)",
+      "areas": [
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Compresser Room",
+            "Panel Room",
+            "DG Area"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B3",
+      "name": "Building No. 3 (Canteen Building)",
+      "areas": [
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Dining Area",
+            "Kitchen",
+            "Krech",
+            "Staircase"
+          ]
+        },
+        {
+          "name": "First Floor",
+          "subAreas": [
+            "Sales Office",
+            "Guest Room",
+            "Conference Room"
+          ]
+        },
+        {
+          "name": "Washroom",
+          "subAreas": [
+            "B3-GF 01 - M",
+            "B3-GF 01 - F",
+            "B3-FF 01 - F",
+            "B3-FF 01 - M"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B4",
+      "name": "Building No. 4 (Lvl Building)",
+      "areas": [
+        {
+          "name": "Basement",
+          "subAreas": [
+            "Store",
+            "Staircase"
+          ]
+        },
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Level",
+            "GDMRC",
+            "Reception",
+            "Conference Room",
+            "Dispatch / Quality"
+          ]
+        },
+        {
+          "name": "Mezzanine Floor",
+          "subAreas": [
+            "Cabin Area",
+            "Office",
+            "Chair Room"
+          ]
+        },
+        {
+          "name": "First Floor",
+          "subAreas": [
+            "PMO",
+            "Open Area"
+          ]
+        },
+        {
+          "name": "Washroom",
+          "subAreas": [
+            "B4-GF 01 - M - Level",
+            "B4-GF 01 - F - Reception",
+            "B4-GF 02 - M - Reception",
+            "B4-MF 01 - M - Office Area",
+            "B4-MF 01 - F - Office Area",
+            "B4-MF 02 - F - PMO",
+            "B4-MF 02 - M - Chair Room"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B5",
+      "name": "Building No. 5 (Utility - 2 Building)",
+      "areas": [
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Fire Pump Room",
+            "Sewer Tank",
+            "HT / LT Room",
+            "DG Area",
+            "Store"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B6",
+      "name": "Building No. 6 (FMM)",
+      "areas": [
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Production",
+            "Store"
+          ]
+        },
+        {
+          "name": "First Floor",
+          "subAreas": [
+            "Office",
+            "Conference Room",
+            "Open Area",
+            "Pantry"
+          ]
+        },
+        {
+          "name": "Washroom",
+          "subAreas": [
+            "B6-GF 01 - M",
+            "B4-MF 01 - F"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "B7",
+      "name": "Building No. 7 (Skid Building)",
+      "areas": [
+        {
+          "name": "Ground Floor",
+          "subAreas": [
+            "Skid Production",
+            "Skid Store",
+            "Skid Office",
+            "ETM Production",
+            "ETM Store",
+            "ETM Office",
+            "Conference Room"
+          ]
+        },
+        {
+          "name": "Washroom",
+          "subAreas": [
+            "B7-GF 01 - M - Office",
+            "B7-GF 01 - F - Office",
+            "B7-GF 02- M - Workers",
+            "B7-GF 03- M - Outside"
+          ]
+        }
+      ]
+    }
+  ],
+  "keywords": [
+    "Abnormal Condition",
+    "Accident",
+    "Air Lock",
+    "Bend",
+    "Blw Off",
+    "Broken",
+    "Burnt",
+    "Clogged",
+    "Crack",
+    "Damaged",
+    "Deterioration",
+    "Disengaged",
+    "Dry Solder",
+    "Entangled",
+    "Irregular Temp.",
+    "Lack of lubrication",
+    "Leak",
+    "Low level",
+    "Noisy",
+    "Poor Adjustment",
+    "Poor contact",
+    "Poor Insulation",
+    "Power Failure",
+    "Pressure Drop",
+    "Short Circuit",
+    "Slip",
+    "Tight/Rusty/Jam",
+    "Tripped",
+    "Wire broken",
+    "Wrong Wiring",
+    "Misalignment"
+  ]
+}
