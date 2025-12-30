@@ -7,47 +7,50 @@ import '../styles/Dashboard.css';
 const Dashboard = () => {
     const navigate = useNavigate();
     
-    // 1. Initialize user immediately to avoid layout shifts
+    // 1. Initialize user
     const [user] = useState(() => JSON.parse(localStorage.getItem('user')));
     
     const [permissions, setPermissions] = useState([]); 
-    const [loading, setLoading] = useState(true); // START AS TRUE
+    const [loading, setLoading] = useState(true);
+
+    // --- ADMIN CHECK ---
+    const checkIsAdmin = (u) => {
+        if (!u) return false;
+        const val = u.IsSystemAdmin ?? u.isSystemAdmin ?? u.IsAdmin ?? u.isAdmin;
+        if (val === 1 || val === '1' || val === true || val === 'true') return true;
+        if (u.name && u.name.toLowerCase().includes('admin')) return true;
+        return false;
+    };
+    const isSystemAdmin = checkIsAdmin(user);
 
     useEffect(() => {
         if (!user) {
             navigate('/login');
             return;
         }
-        
         const fetchPerms = async () => {
             try {
-                // Returns array: [{ RoleCode: 'ADM', DepartmentCode: 'FAC' }, ...]
                 const data = await api.getPermissions(user.id);
                 setPermissions(data);
             } catch (err) {
                 console.error("Failed to load permissions");
             } finally {
-                // 2. Only stop loading AFTER the API call finishes (success or fail)
                 setLoading(false);
             }
         };
         fetchPerms();
     }, [navigate, user]);
 
-    // Helper to check if user has ANY role in a specific department
     const hasAccess = (deptCode) => {
         if (!permissions || permissions.length === 0) return false;
         return permissions.some(p => p.DepartmentCode === deptCode);
     };
 
     const handleModuleClick = (mod) => {
-        // 1. Check Access
         if (!hasAccess(mod.id)) {
             alert(`🔒 No Access to ${mod.name}. Contact your Admin.`);
             return;
         }
-
-        // 2. Navigate based on Module ID
         if (mod.id === 'FAC') navigate('/facility-dashboard');
         else if (mod.id === 'SAF') navigate('/safety');
         else if (mod.id === 'BRK') navigate('/breakdown');
@@ -66,7 +69,59 @@ const Dashboard = () => {
     return (
         <div className="dashboard-wrapper"> 
             
-            {/* 3. Show Spinner Overlay while checking permissions */}
+            {/* CSS for Header Alignment */}
+            <style>{`
+                .dashboard-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    background: white;
+                    padding: 20px;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                }
+
+                .admin-btn-responsive {
+                    background: #333;
+                    color: white;
+                    padding: 10px 15px;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    transition: background 0.2s;
+                    white-space: nowrap; /* Prevent text wrapping */
+                }
+                
+                .admin-btn-responsive:hover {
+                    background: #555;
+                }
+
+                /* Mobile Adjustment */
+                @media (max-width: 768px) {
+                    .dashboard-header {
+                        flex-direction: column; /* Stack items vertically */
+                        align-items: flex-start; /* Align left */
+                        gap: 15px; /* Space between title and button */
+                    }
+                    
+                    .admin-btn-responsive {
+                        width: 100%; /* Full width button on mobile */
+                        justify-content: center; /* Center text inside button */
+                        padding: 12px;
+                    }
+
+                    .header-title h1 {
+                        font-size: 1.5rem; /* Slightly smaller font */
+                    }
+                }
+            `}</style>
+
             {loading && (
                 <div className="loading-overlay">
                     <div className="spinner"></div>
@@ -74,33 +129,31 @@ const Dashboard = () => {
             )}
 
             <Navbar user={user} />
+            
             <div className="dashboard-content">
                 
-                {/* Header Section */}
+                {/* --- HEADER --- */}
                 <div className="dashboard-header">
                     <div className="header-title">
-                        <h1>Hi, {user?.name?.split(' ')[0]}</h1>
-                        <p>Welcome to <strong>WIKA {user?.location} Plant</strong></p>
+                        <h1 style={{margin:0, color:'#003399'}}>Hi, {user?.name?.split(' ')[0]}</h1>
+                        <p style={{margin:'5px 0 0 0', color:'#666'}}>Welcome to <strong>WIKA {user?.location} Plant</strong></p>
                     </div>
 
-                    {/* Admin Button */}
-                    {user?.IsSystemAdmin && (
+                    {/* System Admin Button */}
+                    {isSystemAdmin && (
                         <button 
-                            className="admin-btn"
+                            className="admin-btn-responsive"
                             onClick={() => navigate('/admin')}
-                            title="System Admin"
                         >
-                            ⚙️ <span>System Admin</span>
+                            ⚙️ System Admin
                         </button>
                     )}
                 </div>
                 
-                {/* Modules Grid - Only render logic when NOT loading */}
+                {/* --- MODULES GRID --- */}
                 <div className="modules-grid">
                     {modules.map((mod) => {
-                        // While loading, we assume "false" to prevent errors, but the overlay hides it anyway
                         const accessible = loading ? false : hasAccess(mod.id);
-                        
                         return (
                             <div 
                                 key={mod.id} 
@@ -125,8 +178,7 @@ const Dashboard = () => {
                     })}
                 </div>
                 
-                {/* 4. No Access Fallback: ONLY show if loading is false AND permissions are actually empty */}
-                {!loading && permissions.length === 0 && (
+                {!loading && permissions.length === 0 && !isSystemAdmin && (
                     <div className="no-access-msg">
                         <p>No modules assigned. Please contact your Plant Admin.</p>
                     </div>
