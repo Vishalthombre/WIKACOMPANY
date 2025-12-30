@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import SystemAdmin from './pages/SystemAdmin';
+import MobileFooter from './components/MobileFooter';
 
 // 2. Module Imports (All dashboards are now active)
 import FacilityDashboard from './pages/modules/FacilityDashboard';
@@ -43,6 +44,7 @@ function App() {
         <Route path="/5s" element={<FiveSDashboard />} />
         
       </Routes>
+      <MobileFooter />
     </Router>
     </NotificationProvider>
   );

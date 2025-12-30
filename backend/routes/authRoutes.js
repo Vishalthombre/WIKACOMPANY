@@ -4,6 +4,7 @@ const authController = require('../controllers/authController');
 
 // Route for Login (POST)
 router.post('/login', authController.login);
+router.post('/update-profile-pic', authController.updateProfilePic);
 
 // Route for Account Activation (Setting Password)
 // This is NEW and required for the "Activate Account" flow

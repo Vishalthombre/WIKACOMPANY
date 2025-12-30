@@ -6,9 +6,10 @@ const MasterDataManager = ({ location, onClose }) => {
     const [keywords, setKeywords] = useState([]);
     const [activeTab, setActiveTab] = useState('locations'); 
     const [isClosing, setIsClosing] = useState(false);
+    
+    // Track screen size for layout adjustments
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     
-    // We keep loading only for the INITIAL fetch
     const [loading, setLoading] = useState(false);
 
     // Selection State
@@ -37,7 +38,7 @@ const MasterDataManager = ({ location, onClose }) => {
         }
     };
 
-    // --- OPTIMIZED ADD HANDLER (Updates Local State Immediately) ---
+    // --- ADD HANDLER ---
     const handleAdd = async (type) => {
         if (!inputs[type].trim()) return;
         const val = inputs[type];
@@ -45,19 +46,14 @@ const MasterDataManager = ({ location, onClose }) => {
         try {
             if (type === 'building') {
                 const res = await facilityApi.addBuilding({ name: val, location });
-                if (res.success) {
-                    // Direct Update: No Re-fetch needed!
-                    setLocations([...locations, { id: res.id, name: val, areas: [] }]);
-                }
+                if (res.success) setLocations([...locations, { id: res.id, name: val, areas: [] }]);
             }
             if (type === 'area') {
                 const res = await facilityApi.addArea({ buildingId: selectedBuilding.id, name: val });
                 if (res.success) {
-                    // Update nested state
                     const updatedLocations = locations.map(b => {
                         if (b.id === selectedBuilding.id) {
                             const newArea = { id: res.id, name: val, subAreas: [] };
-                            // Also update selectedBuilding so UI reflects it immediately
                             setSelectedBuilding({ ...b, areas: [...b.areas, newArea] });
                             return { ...b, areas: [...b.areas, newArea] };
                         }
@@ -88,9 +84,7 @@ const MasterDataManager = ({ location, onClose }) => {
             }
             if (type === 'keyword') {
                 const res = await facilityApi.addKeyword({ name: val });
-                if (res.success) {
-                    setKeywords([...keywords, val]);
-                }
+                if (res.success) setKeywords([...keywords, val]);
             }
             setInputs(prev => ({ ...prev, [type]: '' }));
         } catch (err) {
@@ -98,7 +92,7 @@ const MasterDataManager = ({ location, onClose }) => {
         }
     };
 
-    // --- OPTIMIZED DELETE HANDLER (Updates Local State Immediately) ---
+    // --- DELETE HANDLER ---
     const handleDelete = async (type, item, e) => {
         if(e) e.stopPropagation();
         if (!window.confirm("⚠️ Delete this item?")) return;
@@ -118,7 +112,6 @@ const MasterDataManager = ({ location, onClose }) => {
                     return b;
                 });
                 setLocations(updatedLocations);
-                // Re-sync selected building
                 setSelectedBuilding(updatedLocations.find(b => b.id === selectedBuilding.id));
                 setSelectedArea(null);
             }
@@ -149,7 +142,6 @@ const MasterDataManager = ({ location, onClose }) => {
         }
     };
 
-    // --- Keep Helper Functions & UI as is ---
     const handleClose = () => { setIsClosing(true); setTimeout(onClose, 300); };
     const goBack = () => { if (selectedArea) setSelectedArea(null); else if (selectedBuilding) setSelectedBuilding(null); };
     const getMobileHeader = () => {
@@ -159,10 +151,9 @@ const MasterDataManager = ({ location, onClose }) => {
     };
 
     return (
-        <div style={styles.overlay(isClosing)}>
+        <div style={styles.overlay(isClosing, isMobile)}>
             <div style={styles.modal(isClosing, isMobile)}>
                 
-                {/* Loader only shows on initial load now, not on every action */}
                 {loading && (
                     <div className="loading-overlay" style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(255,255,255,0.8)', zIndex: 50}}>
                         <div className="spinner"></div>
@@ -288,10 +279,42 @@ const MasterDataManager = ({ location, onClose }) => {
     );
 };
 
-/* --- STYLES (Keep exactly the same as before) --- */
+/* --- UPDATED STYLES FOR LAYOUT FITTING --- */
 const styles = {
-    overlay: (isClosing) => ({ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center', animation: isClosing ? 'fadeOut 0.3s forwards' : 'fadeIn 0.3s forwards' }),
-    modal: (isClosing, isMobile) => ({ width: isMobile ? '100%' : '90%', height: isMobile ? '100%' : '85vh', maxWidth: '1100px', backgroundColor: '#ffffff', borderRadius: isMobile ? '0' : '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: isClosing ? 'scaleOut 0.3s forwards' : 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards', position: 'relative' }),
+    overlay: (isClosing, isMobile) => ({
+        position: 'fixed',
+        // Start BELOW Navbar (70px)
+        top: '70px',
+        left: 0,
+        right: 0,
+        // End ABOVE Footer on mobile (65px), bottom of screen on desktop
+        bottom: isMobile ? '65px' : '0',
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backdropFilter: 'blur(5px)',
+        // Z-Index: 900 is lower than Navbar (1000) and Footer (9999)
+        zIndex: 900,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: isMobile ? 'stretch' : 'center', // Stretch to fill space on mobile
+        animation: isClosing ? 'fadeOut 0.2s forwards' : 'fadeIn 0.2s forwards'
+    }),
+    
+    modal: (isClosing, isMobile) => ({
+        // On Mobile: Fill the exact space defined by overlay (width 100%, height 100%)
+        width: isMobile ? '100%' : '90%',
+        height: isMobile ? '100%' : '85vh',
+        maxWidth: '1100px',
+        backgroundColor: '#ffffff',
+        borderRadius: isMobile ? '0' : '16px', // No radius on mobile
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        animation: isClosing ? 'scaleOut 0.2s forwards' : 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        position: 'relative'
+    }),
+
+    // ... Rest of styles remain mostly same ...
     header: { padding: '15px 20px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff', flexShrink: 0 },
     title: { margin: 0, fontSize: '1.2rem', color: '#111827', fontWeight: '700' },
     subtitle: { margin: '2px 0 0', color: '#6B7280', fontSize: '0.85rem' },

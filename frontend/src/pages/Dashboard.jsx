@@ -115,7 +115,7 @@ const Dashboard = () => {
                                 <h3>{mod.name}</h3>
                                 {accessible ? (
                                     <div className="enter-text" style={{color: mod.color}}>
-                                        Open Module →
+                                        Open →
                                     </div>
                                 ) : (
                                     <div className="enter-text" style={{color: '#999'}}>🔒 Locked</div>

@@ -1,67 +1,73 @@
-const { poolPromise, sql } = require('../config/db');
+const { poolPromise } = require('../config/db');
+const sql = require('mssql');
 
-// --- LOGIN ---
+// 1. UPDATE LOGIN FUNCTION
 exports.login = async (req, res) => {
     const { globalId, password } = req.body;
-
-    if (!globalId || !password) {
-        return res.status(400).json({ message: "Global ID and Password Required" });
-    }
-
     try {
         const pool = await poolPromise;
+        
+        // Fetch user AND their ProfileImage
+        const result = await pool.request()
+            .input('id', sql.VarChar, globalId)
+            .query(`
+                SELECT GlobalID, FullName, Email, PasswordHash, PlantLocation, ProfileImage 
+                FROM Employees 
+                WHERE GlobalID = @id
+            `);
 
-        // 1. Get User Details
-        const userResult = await pool.request()
-            .input('gid', sql.NVarChar, globalId)
-            .query('SELECT * FROM Employees WHERE GlobalID = @gid');
+        const user = result.recordset[0];
 
-        const user = userResult.recordset[0];
-
-        if (!user) {
-            return res.status(401).json({ message: "User not found" });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        // Simple password check
+        if (password !== user.PasswordHash) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // 2. Check Password
-        if (user.PasswordHash !== password) {
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
+        // Get Roles
+        const roleResult = await pool.request()
+            .input('id', sql.VarChar, globalId)
+            .query('SELECT DepartmentCode, RoleCode FROM EmployeeRoles WHERE GlobalID = @id');
 
-        // 3. Check Activation Status (For new users)
-        // If IsActive is 0 or null (false), force them to set a password
-        if (!user.IsActive) {
-            return res.status(403).json({ 
-                message: "Account Not Activated", 
-                needsActivation: true // Frontend uses this to trigger the "Set Password" modal
-            });
-        }
-
-        // 4. Get Roles (Access Matrix)
-        const rolesResult = await pool.request()
-            .input('gid', sql.NVarChar, user.GlobalID)
-            .query('SELECT RoleCode, DepartmentCode FROM EmployeeRoles WHERE GlobalID = @gid');
-
-        // 5. Send Response (Includes PlantLocation for Multi-Plant Logic)
+        // ✅ FIX: Send data wrapped in 'user' object to match Frontend 'api.js'
         res.json({
-            message: "Login Successful",
+            token: "active", // Dummy token (Replace with JWT if you use it)
             user: {
-                id: user.GlobalID,
-                name: user.FullName,
-                email: user.Email,
-                location: user.PlantLocation, // CRITICAL: Used to filter data by Plant (Pune, Ghaziabad, etc.)
-                // Logic: A user sees the "System Admin" button if they have 'ADM' role in 'FAC' department
-                IsSystemAdmin: rolesResult.recordset.some(r => r.RoleCode === 'ADM' && r.DepartmentCode === 'FAC') 
-            },
-            roles: rolesResult.recordset // e.g. [{ RoleCode: 'ADM', DepartmentCode: 'SAF' }]
+                GlobalID: user.GlobalID,     // Keep DB column names for Frontend mapping
+                FullName: user.FullName,
+                Email: user.Email,
+                PlantLocation: user.PlantLocation,
+                ProfileImage: user.ProfileImage, 
+                roles: roleResult.recordset
+            }
         });
 
     } catch (err) {
-        console.error('Login Error:', err);
-        res.status(500).json({ message: "Server Error" });
+        console.error("Login Error:", err);
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
-// --- ACTIVATE ACCOUNT (Set Password) ---
+// 2. UPDATE PROFILE PICTURE
+exports.updateProfilePic = async (req, res) => {
+    const { globalId, imageBase64 } = req.body;
+
+    try {
+        const pool = await poolPromise;
+        await pool.request()
+            .input('id', sql.VarChar, globalId)
+            .input('img', sql.NVarChar(sql.MAX), imageBase64)
+            .query('UPDATE Employees SET ProfileImage = @img WHERE GlobalID = @id');
+
+        res.json({ message: 'Profile updated successfully', profileImage: imageBase64 });
+    } catch (err) {
+        console.error("Profile Update Error:", err);
+        res.status(500).json({ message: 'Failed to update image' });
+    }
+};
+
+// --- ACTIVATE ACCOUNT ---
 exports.activateAccount = async (req, res) => {
     const { globalId, password } = req.body;
 
@@ -71,8 +77,6 @@ exports.activateAccount = async (req, res) => {
 
     try {
         const pool = await poolPromise;
-        
-        // Updates password AND sets account to Active (1)
         await pool.request()
             .input('gid', sql.NVarChar, globalId)
             .input('pass', sql.NVarChar, password)
@@ -101,7 +105,7 @@ exports.getPermissions = async (req, res) => {
     }
 };
 
-// --- VERIFY ID (Used in Activation Screen) ---
+// --- VERIFY ID ---
 exports.verifyUser = async (req, res) => {
     const { globalId } = req.body;
 
@@ -121,7 +125,6 @@ exports.verifyUser = async (req, res) => {
             return res.status(400).json({ message: "Account already active. Please Login." });
         }
 
-        // Return details so user knows they are activating the right account
         res.json({ 
             Name: user.FullName, 
             Email: user.Email, 

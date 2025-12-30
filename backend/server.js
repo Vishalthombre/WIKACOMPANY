@@ -8,7 +8,9 @@ const app = express();
 
 // --- 1. Middleware ---
 app.use(cors()); // Allows Frontend (Port 5173/3000) to talk to Backend (Port 5000)
-app.use(express.json()); // Allows parsing JSON bodies (req.body)
+// Increase limit to 50MB to handle image uploads
+app.use(express.json({ limit: '50mb' })); 
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // Allows parsing JSON bodies (req.body)
 
 // --- 2. Database Connection Check (New & Important) ---
 // This logs a success/error message when the server starts
