@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext';
+import imageCompression from 'browser-image-compression'; // Import the library
 
 const SafetyRaiser = ({ user }) => {
     const { notify } = useNotification();
@@ -27,6 +28,7 @@ const SafetyRaiser = ({ user }) => {
     const [image, setImage] = useState(null); 
     const [preview, setPreview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [isCompressing, setIsCompressing] = useState(false); // New state for compression loading
 
     useEffect(() => { 
         loadMasterData(); 
@@ -80,11 +82,36 @@ const SafetyRaiser = ({ user }) => {
         }
     };
 
-    const handleFileSelect = (e) => {
+    // --- NEW: COMPRESSION LOGIC ---
+    const handleFileSelect = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setImage(file);
-            setPreview(URL.createObjectURL(file));
+        if (!file) return;
+
+        // Compression Options
+        const options = {
+            maxSizeMB: 1,          // Target size: 1MB
+            maxWidthOrHeight: 1920, // Max dimension (prevents huge 4k photos)
+            useWebWorker: true,    // Run in background to avoid freezing UI
+        };
+
+        setIsCompressing(true); // Show loading state
+
+        try {
+            // Compress the file
+            const compressedFile = await imageCompression(file, options);
+            
+            // Set the compressed file to state
+            setImage(compressedFile);
+            setPreview(URL.createObjectURL(compressedFile));
+            
+            // Optional: Log savings
+            console.log(`Original: ${(file.size/1024/1024).toFixed(2)}MB, Compressed: ${(compressedFile.size/1024/1024).toFixed(2)}MB`);
+
+        } catch (error) {
+            console.error("Compression failed:", error);
+            notify("Could not process image. Please try again.", "error");
+        } finally {
+            setIsCompressing(false); // Hide loading state
         }
     };
 
@@ -93,6 +120,10 @@ const SafetyRaiser = ({ user }) => {
         
         if (!form.buildingId || !form.hazardType || !form.description) {
             return notify("Please fill required fields (*)", "error");
+        }
+
+        if (isCompressing) {
+            return notify("Please wait for image processing...", "info");
         }
 
         setSubmitting(true);
@@ -228,7 +259,7 @@ const SafetyRaiser = ({ user }) => {
                         />
                         
                         {/* Custom Buttons Area */}
-                        {!preview ? (
+                        {!preview && !isCompressing && (
                             <div style={styles.buttonRow}>
                                 {/* Capture Button */}
                                 <label htmlFor="safety-camera" style={styles.actionBtn}>
@@ -242,7 +273,18 @@ const SafetyRaiser = ({ user }) => {
                                     <span>Upload</span>
                                 </label>
                             </div>
-                        ) : (
+                        )}
+
+                        {/* Loading State for Compression */}
+                        {isCompressing && (
+                            <div style={styles.uploadArea}>
+                                <div className="spinner" style={{width:'24px', height:'24px', borderWidth:'3px'}}></div>
+                                <span style={{color:'#64748b', fontSize:'0.9rem'}}>Compressing Image...</span>
+                            </div>
+                        )}
+
+                        {/* Preview State */}
+                        {preview && !isCompressing && (
                             <div style={styles.previewContainer}>
                                 <img src={preview} alt="Evidence" style={styles.previewImg} />
                                 <button type="button" onClick={() => {setImage(null); setPreview(null)}} style={styles.removeBtn}>✕ Remove</button>
@@ -250,7 +292,7 @@ const SafetyRaiser = ({ user }) => {
                         )}
                     </div>
 
-                    <button type="submit" style={styles.submitBtn} disabled={submitting}>
+                    <button type="submit" style={styles.submitBtn} disabled={submitting || isCompressing}>
                         {submitting ? 'Submitting...' : 'Submit Report'}
                     </button>
                 </form>
@@ -292,11 +334,9 @@ const SafetyRaiser = ({ user }) => {
                     margin: 0 auto;
                     align-items: flex-start;
                 }
-                
                 .history-section {
                     flex: 1;
                 }
-
                 @media (max-width: 900px) {
                     .safety-raiser-page {
                         flex-direction: column; 
@@ -306,6 +346,12 @@ const SafetyRaiser = ({ user }) => {
                         margin-top: 10px;
                     }
                 }
+                .spinner {
+                    border: 3px solid #f3f3f3; border-top: 3px solid #1e293b;
+                    border-radius: 50%; width: 24px; height: 24px;
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `}</style>
         </div>
     );
@@ -320,24 +366,21 @@ const styles = {
         padding: '25px', 
         borderRadius: '16px', 
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', 
-        borderTop: '4px solid #1e293b' // Navy
+        borderTop: '4px solid #1e293b' 
     },
     header: { marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '15px' },
     gridRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
     formGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
-    req: { color: '#ef4444', marginLeft: '2px' }, // Soft Red for asterisk
+    req: { color: '#ef4444', marginLeft: '2px' }, 
     
     input: { 
         padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', 
         background: '#f8fafc', fontSize: '0.95rem', color: '#1e293b', outline: 'none', transition: 'all 0.2s'
     },
     
-    // --- New Button Row for Camera/Upload ---
-    buttonRow: {
-        display: 'flex',
-        gap: '15px'
-    },
+    // --- Button Row for Camera/Upload ---
+    buttonRow: { display: 'flex', gap: '15px' },
     actionBtn: {
         flex: 1,
         border: '2px dashed #cbd5e0',
@@ -355,6 +398,12 @@ const styles = {
         transition: 'all 0.2s'
     },
 
+    // --- Loading Area ---
+    uploadArea: { 
+        border: '2px dashed #cbd5e0', padding: '10px', borderRadius: '12px', textAlign: 'center', 
+        background: '#f8fafc', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' 
+    },
+
     previewContainer: { position: 'relative', width: '100%', height: '180px', borderRadius:'12px', overflow:'hidden', border:'1px solid #e2e8f0' },
     previewImg: { width: '100%', height: '100%', objectFit: 'cover' },
     removeBtn: { 
@@ -366,7 +415,8 @@ const styles = {
     submitBtn: { 
         marginTop: '10px', padding: '14px', background: '#1e293b', color: 'white', 
         border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', 
-        boxShadow: '0 4px 6px rgba(30, 41, 59, 0.3)', transition: 'background 0.2s'
+        boxShadow: '0 4px 6px rgba(30, 41, 59, 0.3)', transition: 'background 0.2s',
+        opacity: (props) => props.disabled ? 0.7 : 1
     },
 
     // --- HISTORY CARD ---
@@ -384,7 +434,7 @@ const styles = {
         padding: '12px', 
         borderRadius: '10px', 
         background: '#f8fafc', 
-        border: '1px solid #f1f5f9' 
+        border: '1px solid #e2e8f0' 
     },
     historyHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px' },
     

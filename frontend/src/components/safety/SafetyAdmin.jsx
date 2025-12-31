@@ -59,7 +59,7 @@ const SafetyAdmin = ({ user }) => {
                     <p style={styles.subHeader}>Overview of reported hazards in {user.location}</p>
                 </div>
                 <button onClick={() => setShowConfig(true)} style={styles.configBtn}>
-                    <span>⚙️</span> Configure Hazards
+                    <span>⚙️</span> Config Dropdown
                 </button>
             </div>
             
