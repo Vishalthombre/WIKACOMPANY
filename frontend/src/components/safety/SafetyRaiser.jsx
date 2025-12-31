@@ -83,15 +83,17 @@ const SafetyRaiser = ({ user }) => {
     };
 
     // --- NEW: COMPRESSION LOGIC ---
+   // --- OPTIMIZED COMPRESSION LOGIC ---
     const handleFileSelect = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Compression Options
+        // NEW: Aggressive Compression Settings
         const options = {
-            maxSizeMB: 1,          // Target size: 1MB
-            maxWidthOrHeight: 1920, // Max dimension (prevents huge 4k photos)
-            useWebWorker: true,    // Run in background to avoid freezing UI
+            maxSizeMB: 0.3,          // Target: 300KB (Much faster than 1MB)
+            maxWidthOrHeight: 1024,  // Limit resolution to 1024px (Enough for evidence)
+            useWebWorker: true,      // Keeps UI smooth
+            initialQuality: 0.7      // Start with lower quality to speed up processing
         };
 
         setIsCompressing(true); // Show loading state
@@ -104,8 +106,9 @@ const SafetyRaiser = ({ user }) => {
             setImage(compressedFile);
             setPreview(URL.createObjectURL(compressedFile));
             
-            // Optional: Log savings
-            console.log(`Original: ${(file.size/1024/1024).toFixed(2)}MB, Compressed: ${(compressedFile.size/1024/1024).toFixed(2)}MB`);
+            // Debugging: Check how much space we saved
+            console.log(`Original: ${(file.size/1024/1024).toFixed(2)}MB`);
+            console.log(`Compressed: ${(compressedFile.size/1024/1024).toFixed(2)}MB`); // Should be ~0.2MB
 
         } catch (error) {
             console.error("Compression failed:", error);
