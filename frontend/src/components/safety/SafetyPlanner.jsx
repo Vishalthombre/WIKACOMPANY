@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext';
+import { IMAGE_BASE_URL } from '../../config';
 
 // --- PROFESSIONAL ICONS ---
 const Icons = {
@@ -18,8 +19,6 @@ const SafetyPlanner = ({ user }) => {
     const [loading, setLoading] = useState(true);
     const [assignmentData, setAssignmentData] = useState({});
     const [selectedImage, setSelectedImage] = useState(null); 
-
-    const API_BASE_URL = 'http://localhost:5000';
 
     useEffect(() => {
         loadData();
@@ -76,9 +75,9 @@ const SafetyPlanner = ({ user }) => {
     });
 
     const getImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        return `${API_BASE_URL}${path}`;
+    if (!path) return null;
+    if (path.startsWith('http')) return path; // In case it's already a full link
+    return `${IMAGE_BASE_URL}${path}`; // Uses the config URL
     };
 
     return (

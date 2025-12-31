@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config'; // Import from config
 
-// Ensure this points to your actual backend URL
-const API_URL = 'http://localhost:5000/api/safety'; 
+// Construct the Safety Endpoint: "http://.../api" + "/safety"
+const SAFETY_URL = `${API_BASE_URL}/safety`; 
 
 // Helper to get Auth Header
 const getAuthHeaders = () => {
@@ -10,71 +11,75 @@ const getAuthHeaders = () => {
 };
 
 export const safetyApi = {
-    // 1. Get Dropdowns (Locations, Hazards, etc.)
+    // 1. Get Dropdowns
     getDropdownData: async (location) => {
-        const res = await axios.get(`${API_URL}/master-data`, { 
+        const res = await axios.get(`${SAFETY_URL}/master-data`, { 
             params: { location },
             headers: getAuthHeaders() 
         });
         return res.data;
     },
 
-    // 2. CREATE TICKET WITH IMAGE
+    // 2. CREATE TICKET
     createTicket: async (formData) => {
-        const res = await axios.post(`${API_URL}/tickets`, formData, {
-            headers: { 
-                ...getAuthHeaders(),
-                // NOTE: Do NOT manually set 'Content-Type': 'multipart/form-data' here.
-                // Axios automatically sets the correct boundary for FormData.
-            }
+        const res = await axios.post(`${SAFETY_URL}/tickets`, formData, {
+            headers: { ...getAuthHeaders() } // Axios handles multipart boundary automatically
         });
         return res.data;
     },
 
     // 3. Get All Tickets
     getAllTickets: async (location) => {
-        const res = await axios.get(`${API_URL}/tickets`, { 
+        const res = await axios.get(`${SAFETY_URL}/tickets`, { 
             params: { location },
             headers: getAuthHeaders()
         });
         return res.data;
     },
 
-    // 4. Assign Ticket (Planner)
+    // 4. Assign Ticket
     assignTicket: async (data) => {
-        const res = await axios.post(`${API_URL}/assign`, data, {
+        const res = await axios.post(`${SAFETY_URL}/assign`, data, {
             headers: getAuthHeaders()
         });
         return res.data;
     },
 
-    // 5. Update Status (Technician)
+    // 5. Update Status
     updateStatus: async (data) => {
-        const res = await axios.post(`${API_URL}/update-status`, data, {
+        const res = await axios.post(`${SAFETY_URL}/update-status`, data, {
             headers: getAuthHeaders()
         });
         return res.data;
     },
 
-    // 6. Get Safety Technicians
+    // 6. Get Technicians
     getTechnicians: async (location) => {
-        const res = await axios.get(`${API_URL}/technicians`, { 
+        const res = await axios.get(`${SAFETY_URL}/technicians`, { 
             params: { location },
             headers: getAuthHeaders()
         });
         return res.data;
     },
     
-    // 7. Master Data Management (Admin)
+    // 7. Master Data (Admin)
     addHazardType: async (data) => {
-        const res = await axios.post(`${API_URL}/master-data/hazard`, data, {
+        const res = await axios.post(`${SAFETY_URL}/master-data/hazard`, data, {
             headers: getAuthHeaders()
         });
         return res.data;
     },
     
-    deleteHazardType: async (id) => {
-        const res = await axios.delete(`${API_URL}/master-data/hazard/${id}`, {
+    deleteHazardType: async (name) => {
+        const res = await axios.delete(`${SAFETY_URL}/master-data/hazard/${name}`, {
+            headers: getAuthHeaders()
+        });
+        return res.data;
+    },
+
+    // 8. Delete Ticket (Added this based on previous request)
+    deleteTicket: async (id) => {
+        const res = await axios.delete(`${SAFETY_URL}/tickets/${id}`, {
             headers: getAuthHeaders()
         });
         return res.data;

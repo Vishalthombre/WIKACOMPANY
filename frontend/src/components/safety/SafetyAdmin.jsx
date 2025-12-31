@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext'; 
 import SafetyMasterConfig from './SafetyMasterConfig';
+import { IMAGE_BASE_URL } from '../../config';
 
 const SafetyAdmin = ({ user }) => {
     const { notify } = useNotification();
@@ -12,8 +13,6 @@ const SafetyAdmin = ({ user }) => {
     const [showConfig, setShowConfig] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null); // Detail Modal
     const [viewImage, setViewImage] = useState(null); // Full Image Modal
-
-    const API_BASE_URL = 'http://localhost:5000'; 
 
     useEffect(() => {
         loadData();
@@ -45,9 +44,9 @@ const SafetyAdmin = ({ user }) => {
     };
 
     const getImageUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        return `${API_BASE_URL}${path}`;
+    if (!path) return null;
+    if (path.startsWith('http')) return path; // In case it's already a full link
+    return `${IMAGE_BASE_URL}${path}`; // Uses the config URL
     };
 
     return (

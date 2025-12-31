@@ -1,43 +1,38 @@
-// src/services/api.js
+import axios from 'axios';
+import { API_BASE_URL } from '../config'; // Import from central config
 
-// ⚠️ IMPORTANT: Port must be 5000 to match your Node.js server
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Construct Endpoints
+const AUTH_URL = `${API_BASE_URL}/auth`;
+const FACILITY_URL = `${API_BASE_URL}/facility`;
+const ADMIN_URL = `${API_BASE_URL}/admin`;
 
-const API_URL = `${BASE_URL}/auth`;
-const FACILITY_URL = `${BASE_URL}/facility`;
-const ADMIN_URL = `${BASE_URL}/admin`;
+// Helper to get Auth Header
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
+// --- AUTHENTICATION API ---
 export const api = {
     // 1. Verify ID
     verifyID: async (globalId) => {
-        const response = await fetch(`${API_URL}/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ globalId })
-        });
-        return await response.json();
+        const res = await axios.post(`${AUTH_URL}/verify`, { globalId });
+        return res.data;
     },
 
     // 2. Activate Account
     activate: async (data) => {
-        const response = await fetch(`${API_URL}/activate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-        });
-        return await response.json();
+        const res = await axios.post(`${AUTH_URL}/activate`, data);
+        return res.data;
     },
 
     // 3. Login Function (Normalized)
     login: async (credentials) => {
-        const response = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(credentials),
-        });
-        const data = await response.json();
-        
-        if (response.ok) {
+        try {
+            const res = await axios.post(`${AUTH_URL}/login`, credentials);
+            const data = res.data;
+
+            // Normalize User Object
             const rawUser = data.user;
             const normalizedUser = {
                 ...rawUser,
@@ -45,131 +40,135 @@ export const api = {
                 name: rawUser.FullName || rawUser.Name || rawUser.name,
                 location: rawUser.PlantLocation || rawUser.Location || rawUser.location,
                 email: rawUser.Email || rawUser.email,
-                profileImage: rawUser.ProfileImage // Ensure image is passed through
+                profileImage: rawUser.ProfileImage
             };
 
             return { success: true, data: { token: data.token, user: normalizedUser } };
-        } else {
-            return { success: false, message: data.message };
+        } catch (error) {
+            const message = error.response?.data?.message || 'Login failed';
+            return { success: false, message };
         }
     },
 
     // 4. Get Permissions
     getPermissions: async (globalId) => {
-        const response = await fetch(`${API_URL}/permissions/${globalId}`);
-        if (!response.ok) throw new Error('Failed to fetch permissions');
-        return await response.json();
+        const res = await axios.get(`${AUTH_URL}/permissions/${globalId}`);
+        return res.data;
     },
 
-    // ✅ 5. NEW: Update Profile Picture
+    // 5. Update Profile Picture
     updateProfilePic: async (data) => {
-        const response = await fetch(`${API_URL}/update-profile-pic`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return await response.json();
+        const res = await axios.post(`${AUTH_URL}/update-profile-pic`, data);
+        return res.data;
     }
 };
 
+// --- FACILITY API ---
 export const facilityApi = {
     getDropdownData: async (location) => {
-        const res = await fetch(`${FACILITY_URL}/dropdowns?location=${location}`);
-        return await res.json();
+        const res = await axios.get(`${FACILITY_URL}/dropdowns`, { 
+            params: { location },
+            headers: getAuthHeaders() 
+        });
+        return res.data;
     },
     getTechnicians: async (location) => {
-        const res = await fetch(`${FACILITY_URL}/technicians?location=${location}`);
-        return await res.json();
+        const res = await axios.get(`${FACILITY_URL}/technicians`, { 
+            params: { location },
+            headers: getAuthHeaders() 
+        });
+        return res.data;
     },
     createTicket: async (ticketData) => {
-        const res = await fetch(`${FACILITY_URL}/tickets`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ticketData)
+        const res = await axios.post(`${FACILITY_URL}/tickets`, ticketData, { 
+            headers: getAuthHeaders() 
         });
-        return await res.json();
+        return res.data;
     },
     getAllTickets: async (location) => {
-        const res = await fetch(`${FACILITY_URL}/tickets?location=${location}`);
-        return await res.json();
+        const res = await axios.get(`${FACILITY_URL}/tickets`, { 
+            params: { location },
+            headers: getAuthHeaders() 
+        });
+        return res.data;
     },
     assignTicket: async (data) => {
-        const res = await fetch(`${FACILITY_URL}/assign`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+        const res = await axios.post(`${FACILITY_URL}/assign`, data, { 
+            headers: getAuthHeaders() 
         });
-        return await res.json();
+        return res.data;
     },
     updateStatus: async (data) => {
-        const res = await fetch(`${FACILITY_URL}/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+        const res = await axios.post(`${FACILITY_URL}/status`, data, { 
+            headers: getAuthHeaders() 
         });
-        return await res.json();
+        return res.data;
     },
     deleteTicket: async (ticketId) => {
-        const res = await fetch(`${FACILITY_URL}/tickets/${ticketId}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
+        const res = await axios.delete(`${FACILITY_URL}/tickets/${ticketId}`, { 
+            headers: getAuthHeaders() 
         });
-        return await res.json();
+        return res.data;
     },
+    
     /* Master Data */
     addBuilding: async (data) => {
-        const res = await fetch(`${FACILITY_URL}/master/building`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        return await res.json();
+        const res = await axios.post(`${FACILITY_URL}/master/building`, data, { headers: getAuthHeaders() });
+        return res.data;
     },
     deleteBuilding: async (id) => {
-        const res = await fetch(`${FACILITY_URL}/master/building/${id}`, { method: 'DELETE' });
-        return await res.json();
+        const res = await axios.delete(`${FACILITY_URL}/master/building/${id}`, { headers: getAuthHeaders() });
+        return res.data;
     },
     addArea: async (data) => {
-        const res = await fetch(`${FACILITY_URL}/master/area`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        return await res.json();
+        const res = await axios.post(`${FACILITY_URL}/master/area`, data, { headers: getAuthHeaders() });
+        return res.data;
     },
     deleteArea: async (id) => {
-        const res = await fetch(`${FACILITY_URL}/master/area/${id}`, { method: 'DELETE' });
-        return await res.json();
+        const res = await axios.delete(`${FACILITY_URL}/master/area/${id}`, { headers: getAuthHeaders() });
+        return res.data;
     },
     addSubArea: async (data) => {
-        const res = await fetch(`${FACILITY_URL}/master/subarea`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        return await res.json();
+        const res = await axios.post(`${FACILITY_URL}/master/subarea`, data, { headers: getAuthHeaders() });
+        return res.data;
     },
     deleteSubArea: async (areaId, name) => {
-        const res = await fetch(`${FACILITY_URL}/master/subarea`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({areaId, name}) });
-        return await res.json();
+        // Axios delete with body requires 'data' property
+        const res = await axios.delete(`${FACILITY_URL}/master/subarea`, { 
+            headers: getAuthHeaders(),
+            data: { areaId, name } 
+        });
+        return res.data;
     },
     addKeyword: async (data) => {
-        const res = await fetch(`${FACILITY_URL}/master/keyword`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        return await res.json();
+        const res = await axios.post(`${FACILITY_URL}/master/keyword`, data, { headers: getAuthHeaders() });
+        return res.data;
     },
     deleteKeyword: async (name) => {
-        const res = await fetch(`${FACILITY_URL}/master/keyword/${name}`, { method: 'DELETE' });
-        return await res.json();
+        const res = await axios.delete(`${FACILITY_URL}/master/keyword/${name}`, { headers: getAuthHeaders() });
+        return res.data;
     },
 };
 
+// --- ADMIN API ---
 export const adminApi = {
     getEmployees: async (adminId) => {
-        const res = await fetch(`${ADMIN_URL}/employees?adminId=${adminId}`);
-        return await res.json();
+        const res = await axios.get(`${ADMIN_URL}/employees`, { 
+            params: { adminId },
+            headers: getAuthHeaders()
+        });
+        return res.data;
     },
     addEmployee: async (empData) => {
-        const res = await fetch(`${ADMIN_URL}/employees`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(empData)
+        const res = await axios.post(`${ADMIN_URL}/employees`, empData, { 
+            headers: getAuthHeaders() 
         });
-        return await res.json();
+        return res.data;
     },
     updateAccess: async (data) => {
-        const res = await fetch(`${ADMIN_URL}/access`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
+        const res = await axios.post(`${ADMIN_URL}/access`, data, { 
+            headers: getAuthHeaders() 
         });
-        return await res.json();
+        return res.data;
     }
 };
