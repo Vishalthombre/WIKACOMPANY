@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { adminApi } from '../services/api';
 import { useNotification } from '../context/NotificationContext';
+import AccessConfig from './AccessConfig'; // Ensure this file exists in the same folder
 
 const SystemAdmin = () => {
     const navigate = useNavigate();
@@ -11,8 +12,12 @@ const SystemAdmin = () => {
     const user = JSON.parse(localStorage.getItem('user'));
 
     const [employees, setEmployees] = useState([]);
+    const [departments, setDepartments] = useState([]); 
+    const [designations, setDesignations] = useState([]); 
+
     const [searchTerm, setSearchTerm] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showConfigModal, setShowConfigModal] = useState(false); // NEW: Config Modal State
     const [editingUser, setEditingUser] = useState(null);
     const [isClosing, setIsClosing] = useState(false);
     
@@ -21,8 +26,10 @@ const SystemAdmin = () => {
     const [pageLoading, setPageLoading] = useState(true); 
     const [actionLoading, setActionLoading] = useState(false);
 
+    // Form State
     const [newEmp, setNewEmp] = useState({ 
-        GlobalID: '', Name: '', Email: '', Location: user?.location || '' 
+        GlobalID: '', Name: '', Email: '', Location: user?.location || '',
+        deptId: '', desigId: '' 
     });
 
     const depts = [
@@ -44,11 +51,22 @@ const SystemAdmin = () => {
         if (!user) { navigate('/login'); return; }
         
         loadEmployees();
+        loadMasterData();
 
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    const loadMasterData = async () => {
+        try {
+            const data = await adminApi.getJobMasterData();
+            setDepartments(data.departments);
+            setDesignations(data.designations);
+        } catch (err) {
+            console.error("Failed to load job roles");
+        }
+    };
 
     const loadEmployees = async () => {
         setPageLoading(true); 
@@ -60,6 +78,8 @@ const SystemAdmin = () => {
                 Name: u.Name || u.name || 'Unknown',
                 Email: u.Email || u.email || 'No Email',
                 Location: u.Location || u.location || '',
+                Department: u.department || '-', 
+                Designation: u.designation || '-', 
                 roles: u.roles || []
             }));
             setEmployees(formattedData);
@@ -84,7 +104,10 @@ const SystemAdmin = () => {
                 globalId: newEmp.GlobalID,
                 name: newEmp.Name,
                 email: newEmp.Email,
-                location: user.location 
+                location: user.location,
+                password: '12345', 
+                deptId: newEmp.deptId,
+                desigId: newEmp.desigId
             });
             if(res.message) notify(res.message, "success");
             closeModal();
@@ -127,8 +150,12 @@ const SystemAdmin = () => {
         setTimeout(() => {
             setShowAddModal(false);
             setEditingUser(null);
+            setShowConfigModal(false); // Close config modal too
             setIsClosing(false);
-            setNewEmp({ GlobalID: '', Name: '', Email: '', Location: user?.location || '' });
+            setNewEmp({ 
+                GlobalID: '', Name: '', Email: '', Location: user?.location || '', 
+                deptId: '', desigId: '' 
+            });
         }, 300);
     };
 
@@ -151,20 +178,25 @@ const SystemAdmin = () => {
                             {!isMobile && <p style={styles.subTitle}>Manage users for <strong>{user.location}</strong></p>}
                         </div>
                     </div>
-                    <button className="action-btn-primary" onClick={() => setShowAddModal(true)} style={styles.addBtn}>
-                        {isMobile ? '+ Add' : '+ Add Employee'}
-                    </button>
+                    
+                    {/* BUTTON GROUP */}
+                    <div style={{display:'flex', gap:'10px'}}>
+                        <button className="action-btn-secondary" onClick={() => setShowConfigModal(true)} style={styles.configBtn}>
+                            ⚙️ {isMobile ? '' : 'Manage Rules'}
+                        </button>
+                        <button className="action-btn-primary" onClick={() => setShowAddModal(true)} style={styles.addBtn}>
+                            {isMobile ? '+ Add' : '+ Add Employee'}
+                        </button>
+                    </div>
                 </div>
 
                 <div style={styles.card}>
-                    {/* Page Loader */}
                     {pageLoading && (
                         <div className="loading-overlay" style={styles.loaderOverlay}>
                             <div className="spinner" style={{width:'40px', height:'40px'}}></div>
                         </div>
                     )}
 
-                    {/* Card/Table Header */}
                     <div style={styles.cardHeader}>
                         <div style={styles.searchContainer}>
                             <input 
@@ -179,13 +211,12 @@ const SystemAdmin = () => {
                         </div>
                     </div>
                     
-                    {/* --- RESPONSIVE LIST --- */}
+                    {/* --- LIST VIEW --- */}
                     <div style={styles.listContainer}>
                         {filteredEmployees.length === 0 && !pageLoading ? (
                             <div style={styles.emptyState}>No users found.</div>
                         ) : (
                             isMobile ? (
-                                // --- MOBILE CARD VIEW (No Horizontal Scroll) ---
                                 <div style={styles.mobileGrid}>
                                     {filteredEmployees.map(emp => (
                                         <div key={emp.GlobalID} style={styles.mobileCard}>
@@ -194,6 +225,9 @@ const SystemAdmin = () => {
                                                 <div style={{flex:1}}>
                                                     <div style={{fontWeight:'700', color:'#333'}}>{emp.Name}</div>
                                                     <div style={{fontSize:'0.85rem', color:'#666'}}>{emp.GlobalID}</div>
+                                                    <div style={{fontSize:'0.8rem', color:'#003399', marginTop:'2px'}}>
+                                                        {emp.Designation} • {emp.Department}
+                                                    </div>
                                                 </div>
                                                 <button onClick={() => setEditingUser(emp)} style={styles.btnIconEdit}>
                                                     ⚙️
@@ -217,13 +251,12 @@ const SystemAdmin = () => {
                                     ))}
                                 </div>
                             ) : (
-                                // --- DESKTOP TABLE VIEW ---
                                 <table style={styles.table}>
                                     <thead>
                                         <tr>
                                             <th style={styles.th}>Global ID</th>
                                             <th style={styles.th}>Name</th>
-                                            <th style={styles.th}>Email</th>
+                                            <th style={styles.th}>Job Profile</th>
                                             <th style={styles.th}>Assigned Roles</th>
                                             <th style={styles.th}>Actions</th>
                                         </tr>
@@ -235,10 +268,16 @@ const SystemAdmin = () => {
                                                 <td style={styles.td}>
                                                     <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
                                                         <div style={styles.avatar}>{(emp.Name || '?').charAt(0)}</div>
-                                                        {emp.Name}
+                                                        <div>
+                                                            <div>{emp.Name}</div>
+                                                            <div style={{fontSize:'0.8rem', color:'#888'}}>{emp.Email}</div>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td style={styles.td} style={{color:'#666'}}>{emp.Email}</td>
+                                                <td style={styles.td}>
+                                                    <div style={{fontWeight:'500', color:'#374151'}}>{emp.Designation}</div>
+                                                    <div style={{fontSize:'0.8rem', color:'#666'}}>{emp.Department}</div>
+                                                </td>
                                                 <td style={styles.td}>
                                                     <div style={{display:'flex', gap:'5px', flexWrap:'wrap'}}>
                                                         {emp.roles.length > 0 ? (
@@ -267,12 +306,28 @@ const SystemAdmin = () => {
                     </div>
                 </div>
 
-                {/* --- MODAL --- */}
-                {(showAddModal || editingUser) && (
+                {/* --- MODALS --- */}
+                
+                {/* 1. CONFIG MODAL (New) */}
+                {showConfigModal && (
+                    <div style={styles.overlay(isClosing)}>
+                        <div style={styles.modal(isClosing, isMobile)}>
+                            <div style={styles.modalHeader}>
+                                <h3>System Configuration</h3>
+                                <button onClick={closeModal} style={styles.btnClose}>&times;</button>
+                            </div>
+                            <div style={styles.modalBody}>
+                                <AccessConfig onClose={closeModal} />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 2. ADD/EDIT MODAL */}
+                {(showAddModal || editingUser) && !showConfigModal && (
                     <div style={styles.overlay(isClosing)}>
                         <div style={styles.modal(isClosing, isMobile)}>
                             
-                            {/* Action Loader */}
                             {actionLoading && (
                                 <div className="loading-overlay" style={styles.loaderOverlay}>
                                     <div className="spinner" style={{width:'40px', height:'40px'}}></div>
@@ -299,6 +354,38 @@ const SystemAdmin = () => {
                                         <label style={styles.label}>Email Address</label>
                                         <input style={styles.input} type="email" placeholder="john@company.com" value={newEmp.Email} onChange={e => setNewEmp({...newEmp, Email: e.target.value})} required />
                                     </div>
+                                    
+                                    <div style={{display:'flex', gap:'15px'}}>
+                                        <div style={{flex:1, ...styles.formGroup}}>
+                                            <label style={styles.label}>Department</label>
+                                            <select 
+                                                style={styles.select} 
+                                                value={newEmp.deptId} 
+                                                onChange={e => setNewEmp({...newEmp, deptId: e.target.value})} 
+                                                required
+                                            >
+                                                <option value="">Select Dept...</option>
+                                                {departments.map(d => (
+                                                    <option key={d.DeptID} value={d.DeptID}>{d.DeptName}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div style={{flex:1, ...styles.formGroup}}>
+                                            <label style={styles.label}>Designation</label>
+                                            <select 
+                                                style={styles.select} 
+                                                value={newEmp.desigId} 
+                                                onChange={e => setNewEmp({...newEmp, desigId: e.target.value})} 
+                                                required
+                                            >
+                                                <option value="">Select Role...</option>
+                                                {designations.map(d => (
+                                                    <option key={d.DesigID} value={d.DesigID}>{d.DesigName}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
                                     <div style={styles.formGroup}>
                                         <label style={styles.label}>Location</label>
                                         <input 
@@ -309,7 +396,7 @@ const SystemAdmin = () => {
                                     </div>
                                     <div style={styles.modalFooter}>
                                         <button type="button" onClick={closeModal} style={styles.btnSecondary}>Cancel</button>
-                                        <button type="submit" style={styles.btnPrimary}>Create</button>
+                                        <button type="submit" style={styles.btnPrimary}>Create & Auto-Assign</button>
                                     </div>
                                 </form>
                             )}
@@ -318,8 +405,16 @@ const SystemAdmin = () => {
                             {editingUser && (
                                 <div style={styles.modalBody}>
                                     <div style={styles.userSummary}>
-                                        <strong style={{color:'#003399', fontSize:'1.1rem'}}>{editingUser.Name}</strong>
-                                        <div style={{color:'#666', fontSize:'0.9rem'}}>{editingUser.GlobalID}</div>
+                                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start'}}>
+                                            <div>
+                                                <strong style={{color:'#003399', fontSize:'1.1rem'}}>{editingUser.Name}</strong>
+                                                <div style={{color:'#666', fontSize:'0.9rem'}}>{editingUser.GlobalID}</div>
+                                            </div>
+                                            <div style={{textAlign:'right', fontSize:'0.85rem', color:'#555'}}>
+                                                <div>{editingUser.Designation}</div>
+                                                <div style={{color:'#888'}}>{editingUser.Department}</div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div style={styles.matrixWrapper}>
@@ -358,7 +453,7 @@ const SystemAdmin = () => {
                                     </div>
                                     <div style={styles.modalFooter}>
                                         <button onClick={closeModal} style={styles.btnSecondary}>Close</button>
-                                        <button onClick={saveAccess} style={styles.btnPrimary}>Save</button>
+                                        <button onClick={saveAccess} style={styles.btnPrimary}>Save Manual Changes</button>
                                     </div>
                                 </div>
                             )}
@@ -382,6 +477,7 @@ const styles = {
     subTitle: { color: '#6B7280', margin: '4px 0 0 0', fontSize: '0.9rem' },
     backBtn: { background: 'white', border: '1px solid #ddd', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', color: '#555', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '5px' },
     addBtn: { padding: '10px 20px', fontSize: '0.95rem', fontWeight: '600', borderRadius: '8px', border: 'none', background: '#003399', color: 'white', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,51,153,0.2)' },
+    configBtn: { padding: '10px 15px', fontSize: '0.95rem', fontWeight: '600', borderRadius: '8px', border: '1px solid #ccc', background: 'white', color: '#333', cursor: 'pointer' },
 
     // Card Container
     card: { background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', border: '1px solid #eaeaea', overflow: 'hidden', position: 'relative', minHeight: '400px' },
@@ -393,7 +489,7 @@ const styles = {
     countBadge: { background: '#E3F2FD', color: '#1565C0', padding: '5px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '700' },
 
     // List Area
-    listContainer: { overflowX: 'hidden' }, // Prevents horizontal scroll on container
+    listContainer: { overflowX: 'hidden' },
     emptyState: { padding: '50px', textAlign: 'center', color: '#9CA3AF', fontStyle: 'italic' },
 
     // Desktop Table
@@ -440,8 +536,9 @@ const styles = {
     formGroup: { marginBottom: '15px' },
     label: { display: 'block', marginBottom: '5px', fontSize: '0.9rem', fontWeight: '600', color: '#374151' },
     input: { width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '1rem', outline: 'none' },
+    select: { width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #D1D5DB', fontSize: '1rem', outline: 'none', backgroundColor: 'white' },
     userSummary: { marginBottom: '20px', padding: '15px', background: '#F9FAFB', borderRadius: '8px', borderLeft: '4px solid #003399' },
-    matrixWrapper: { border: '1px solid #eee', borderRadius: '8px', overflowX: 'auto', marginBottom: '10px' }, // Allows matrix to scroll horizontally inside modal
+    matrixWrapper: { border: '1px solid #eee', borderRadius: '8px', overflowX: 'auto', marginBottom: '10px' },
     checkbox: { width: '18px', height: '18px', cursor: 'pointer', accentColor: '#003399' },
 
     // Shared Buttons
@@ -457,7 +554,7 @@ styleSheet.innerText = `
   @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes slideDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(30px); } }
-  input:focus { border-color: #003399 !important; box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.1); }
+  input:focus, select:focus { border-color: #003399 !important; box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.1); }
 `;
 document.head.appendChild(styleSheet);
 

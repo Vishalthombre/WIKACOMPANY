@@ -52,11 +52,27 @@ const SafetyTechnician = ({ user }) => {
             notify("Failed to update status", "error");
         }
     };
+// --- IMPROVED IMAGE URL HANDLER ---
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
 
-    const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path; // In case it's already a full link
-    return `${IMAGE_BASE_URL}${path}`; // Uses the config URL
+        // 1. If it's already a full URL (like Cloudinary), just return it
+        if (imagePath.startsWith('http')) return imagePath;
+
+        // 2. Fix Windows Path Issues
+        let cleanPath = imagePath.replace(/\\/g, '/');
+
+        // 3. Ensure slash at start
+        if (!cleanPath.startsWith('/')) {
+            cleanPath = `/${cleanPath}`;
+        }
+
+        // 4. Combine URL
+        const fullUrl = `${IMAGE_BASE_URL}${cleanPath}`;
+
+        // 5. --- FIX: Add Cache Buster ---
+        // This ensures the browser doesn't serve a stale/broken version
+        return `${fullUrl}?t=${new Date().getTime()}`;
     };
 
     return (

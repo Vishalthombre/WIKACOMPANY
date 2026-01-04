@@ -159,6 +159,10 @@ export const adminApi = {
         });
         return res.data;
     },
+    getJobMasterData: async () => {
+        const res = await axios.get(`${ADMIN_URL}/job-master-data`, { headers: getAuthHeaders() });
+        return res.data;
+    },
     addEmployee: async (empData) => {
         const res = await axios.post(`${ADMIN_URL}/employees`, empData, { 
             headers: getAuthHeaders() 
@@ -169,6 +173,24 @@ export const adminApi = {
         const res = await axios.post(`${ADMIN_URL}/access`, data, { 
             headers: getAuthHeaders() 
         });
+        return res.data;
+    },
+    manageJobMaster: async (data) => {
+        const res = await axios.post(`${ADMIN_URL}/master`, data, { headers: getAuthHeaders() });
+        return res.data;
+    },
+
+    // NEW: Rules
+    getAccessRules: async () => {
+        const res = await axios.get(`${ADMIN_URL}/rules`, { headers: getAuthHeaders() });
+        return res.data;
+    },
+    addAccessRule: async (data) => {
+        const res = await axios.post(`${ADMIN_URL}/rules`, data, { headers: getAuthHeaders() });
+        return res.data;
+    },
+    deleteAccessRule: async (id) => {
+        const res = await axios.delete(`${ADMIN_URL}/rules/${id}`, { headers: getAuthHeaders() });
         return res.data;
     }
 };

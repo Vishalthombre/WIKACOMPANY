@@ -82,41 +82,54 @@ const SafetyRaiser = ({ user }) => {
         }
     };
 
-    // --- NEW: COMPRESSION LOGIC ---
-   // --- OPTIMIZED COMPRESSION LOGIC ---
+    // --- OPTIMIZED COMPRESSION LOGIC ---
+    // ... imports
+
+    // --- OPTIMIZED COMPRESSION LOGIC ---
     const handleFileSelect = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // NEW: Aggressive Compression Settings
         const options = {
-            maxSizeMB: 0.3,          // Target: 300KB (Much faster than 1MB)
-            maxWidthOrHeight: 1024,  // Limit resolution to 1024px (Enough for evidence)
-            useWebWorker: true,      // Keeps UI smooth
-            initialQuality: 0.7      // Start with lower quality to speed up processing
+            maxSizeMB: 0.3,          
+            maxWidthOrHeight: 1024,  
+            useWebWorker: true,      
+            initialQuality: 0.7,
+            fileType: "image/jpeg" // Force JPEG format
         };
 
-        setIsCompressing(true); // Show loading state
+        setIsCompressing(true);
 
         try {
-            // Compress the file
-            const compressedFile = await imageCompression(file, options);
+            // 1. Compress
+            const compressedBlob = await imageCompression(file, options);
             
-            // Set the compressed file to state
-            setImage(compressedFile);
-            setPreview(URL.createObjectURL(compressedFile));
+            // 2. --- CRITICAL FIX: RENAME FILE ---
+            // We create a new File object with a Timestamp name + .jpg extension.
+            // This ensures the backend saves it as a valid image file.
+            const timestamp = new Date().getTime();
+            const newFileName = `safety_capture_${user.id}_${timestamp}.jpg`;
             
-            // Debugging: Check how much space we saved
-            console.log(`Original: ${(file.size/1024/1024).toFixed(2)}MB`);
-            console.log(`Compressed: ${(compressedFile.size/1024/1024).toFixed(2)}MB`); // Should be ~0.2MB
+            const convertedFile = new File([compressedBlob], newFileName, {
+                type: 'image/jpeg',
+                lastModified: new Date().getTime()
+            });
+            
+            // 3. Set State
+            setImage(convertedFile);
+            setPreview(URL.createObjectURL(convertedFile));
+            
+            console.log(`Processed: ${newFileName} (${(convertedFile.size/1024/1024).toFixed(2)}MB)`);
 
         } catch (error) {
             console.error("Compression failed:", error);
             notify("Could not process image. Please try again.", "error");
         } finally {
-            setIsCompressing(false); // Hide loading state
+            setIsCompressing(false);
         }
     };
+
+// ... rest of the component
 
     const handleSubmit = async (e) => {
         e.preventDefault();

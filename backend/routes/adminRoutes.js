@@ -8,9 +8,15 @@ const adminController = require('../controllers/adminController');
 router.get('/employees', adminController.getEmployees);
 
 // Add New Employee (Single User Onboarding)
+router.get('/job-master-data', adminController.getJobMasterData);
 router.post('/employees', adminController.addEmployee);
 
 // Update Access Matrix (Roles & Departments)
 router.post('/access', adminController.updateAccess);
+
+router.post('/master', adminController.manageJobMaster); // Add/Delete Dept/Desig
+router.get('/rules', adminController.getAccessRules);
+router.post('/rules', adminController.addAccessRule);
+router.delete('/rules/:ruleId', adminController.deleteAccessRule);
 
 module.exports = router;

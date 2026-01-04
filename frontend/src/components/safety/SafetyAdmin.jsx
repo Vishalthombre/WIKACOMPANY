@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext'; 
 import SafetyMasterConfig from './SafetyMasterConfig';
-import { IMAGE_BASE_URL } from '../../config';
+import { IMAGE_BASE_URL } from '../../config'; // Ensures we link to the correct server
 
 const SafetyAdmin = ({ user }) => {
     const { notify } = useNotification();
@@ -43,10 +43,28 @@ const SafetyAdmin = ({ user }) => {
         }
     };
 
-    const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path; // In case it's already a full link
-    return `${IMAGE_BASE_URL}${path}`; // Uses the config URL
+    // --- IMPROVED IMAGE URL HANDLER ---
+// --- IMPROVED IMAGE URL HANDLER ---
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+
+        // 1. If it's already a full URL (like Cloudinary), just return it
+        if (imagePath.startsWith('http')) return imagePath;
+
+        // 2. Fix Windows Path Issues
+        let cleanPath = imagePath.replace(/\\/g, '/');
+
+        // 3. Ensure slash at start
+        if (!cleanPath.startsWith('/')) {
+            cleanPath = `/${cleanPath}`;
+        }
+
+        // 4. Combine URL
+        const fullUrl = `${IMAGE_BASE_URL}${cleanPath}`;
+
+        // 5. --- FIX: Add Cache Buster ---
+        // This ensures the browser doesn't serve a stale/broken version
+        return `${fullUrl}?t=${new Date().getTime()}`;
     };
 
     return (
