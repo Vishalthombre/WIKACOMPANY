@@ -29,6 +29,9 @@ body, html {
   color: var(--text-dark);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased; /* Sharper text */
+  touch-action: manipulation; /* Or 'none' if you want to block panning too */
+  overscroll-behavior: none;  /* Prevents 'rubber banding' bounce effect */
+  -webkit-text-size-adjust: 100%; /* Prevents iOS text zoom */
 }
 
 /* --- 4. TYPOGRAPHY (Modernized) --- */

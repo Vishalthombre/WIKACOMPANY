@@ -8,15 +8,13 @@ exports.getMasterData = async (req, res) => {
         const pool = await poolPromise;
         console.log(`🔍 [Safety] Fetching Master Data for: ${location}`);
 
-        // Run 4 queries in parallel: Buildings, Areas, SubAreas, Keywords
         const [buildings, areas, subAreas, keywords] = await Promise.all([
             pool.request().input('loc', sql.NVarChar, location || '').query("SELECT * FROM Buildings WHERE PlantLocation = @loc"),
             pool.request().query("SELECT * FROM Areas"), 
-            pool.request().query("SELECT * FROM SubAreas"), // Fetch all subareas
+            pool.request().query("SELECT * FROM SubAreas"), 
             pool.request().query("SELECT * FROM SafetyKeywords")
         ]);
 
-        // CONSTRUCTION: Nest SubAreas -> Areas -> Buildings
         const formattedLocations = buildings.recordset.map(b => ({
             id: b.BuildingID,
             name: b.BuildingName,
@@ -25,7 +23,6 @@ exports.getMasterData = async (req, res) => {
                 .map(a => ({
                     id: a.AreaID,
                     name: a.AreaName,
-                    // Nested SubAreas
                     subAreas: subAreas.recordset
                         .filter(s => s.AreaID === a.AreaID)
                         .map(s => ({
@@ -40,7 +37,7 @@ exports.getMasterData = async (req, res) => {
         console.log(`✅ [Safety] Loaded full location hierarchy.`);
 
         res.json({
-            locations: formattedLocations, // Full Hierarchy
+            locations: formattedLocations,
             hazards: formattedHazards
         });
 
@@ -57,7 +54,13 @@ exports.createTicket = async (req, res) => {
     const { raiserId, raiserName, location, buildingId, areaId, subAreaId, hazardType, description } = req.body;
     
     let imageUrl = null;
-    if (req.file) imageUrl = '/uploads/safety/' + req.file.filename;
+    
+    // --- FIX IS HERE ---
+    // 1. We removed the leading '/' so it stores "uploads/safety/..." (clean relative path)
+    // 2. This matches the folder structure defined in your routes
+    if (req.file) {
+        imageUrl = 'uploads/safety/' + req.file.filename;
+    }
 
     try {
         const pool = await poolPromise;
@@ -78,11 +81,10 @@ exports.createTicket = async (req, res) => {
         const subAreaName = nameLookup.recordsets[2][0]?.SubAreaName || '';
 
         await pool.request()
-            // CHANGE THIS: Use sql.NVarChar instead of sql.Int
             .input('rid', sql.NVarChar, raiserId) 
             .input('rname', sql.NVarChar, raiserName)
             .input('loc', sql.NVarChar, location)
-            .input('bid', sql.Int, buildingId) // Building ID is fine as Int
+            .input('bid', sql.Int, buildingId) 
             .input('bname', sql.NVarChar, buildingName)
             .input('aid', sql.Int, areaId || null)
             .input('aname', sql.NVarChar, areaName)
@@ -107,7 +109,7 @@ exports.createTicket = async (req, res) => {
     }
 };
 
-// ... (Keep other functions like getAllTickets, etc. unchanged) ...
+// --- 3. GET ALL TICKETS ---
 exports.getAllTickets = async (req, res) => {
     const { location } = req.query;
     try {
@@ -117,14 +119,11 @@ exports.getAllTickets = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-// --- 6. GET TECHNICIANS ---
+// --- 4. GET TECHNICIANS ---
 exports.getTechnicians = async (req, res) => {
     const { location } = req.query;
     try {
-        // FIX: Define pool before using it
         const pool = await poolPromise; 
-
-        // Added DISTINCT to prevent duplicate technician entries (fixes the frontend key error too)
         const result = await pool.request()
             .input('loc', sql.NVarChar, location || '')
             .query(`
@@ -141,14 +140,13 @@ exports.getTechnicians = async (req, res) => {
     }
 };
 
-// --- 4. ASSIGN TICKET ---
+// --- 5. ASSIGN TICKET ---
 exports.assignTicket = async (req, res) => {
     const { ticketId, techId, techName, plannerName } = req.body;
     try {
         const pool = await poolPromise;
         await pool.request()
             .input('tid', sql.Int, ticketId)
-            // FIX: Use NVarChar because Tech ID might be alphanumeric (e.g. 'G123')
             .input('techId', sql.NVarChar, techId) 
             .input('techName', sql.NVarChar, techName)
             .input('planner', sql.NVarChar, plannerName)
@@ -159,11 +157,12 @@ exports.assignTicket = async (req, res) => {
             `);
         res.json({ message: 'Assigned successfully' });
     } catch (err) {
-        console.error("Assign Error:", err); // Log error to see details
+        console.error("Assign Error:", err); 
         res.status(500).json({ message: err.message });
     }
 };
 
+// --- 6. UPDATE STATUS ---
 exports.updateStatus = async (req, res) => {
     const { ticketId, status } = req.body;
     try {

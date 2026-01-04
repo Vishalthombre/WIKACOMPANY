@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext';
-import imageCompression from 'browser-image-compression'; // Import the library
+import imageCompression from 'browser-image-compression'; 
 
 const SafetyRaiser = ({ user }) => {
     const { notify } = useNotification();
@@ -28,7 +28,7 @@ const SafetyRaiser = ({ user }) => {
     const [image, setImage] = useState(null); 
     const [preview, setPreview] = useState(null);
     const [submitting, setSubmitting] = useState(false);
-    const [isCompressing, setIsCompressing] = useState(false); // New state for compression loading
+    const [isCompressing, setIsCompressing] = useState(false); 
 
     useEffect(() => { 
         loadMasterData(); 
@@ -83,9 +83,6 @@ const SafetyRaiser = ({ user }) => {
     };
 
     // --- OPTIMIZED COMPRESSION LOGIC ---
-    // ... imports
-
-    // --- OPTIMIZED COMPRESSION LOGIC ---
     const handleFileSelect = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -95,31 +92,26 @@ const SafetyRaiser = ({ user }) => {
             maxWidthOrHeight: 1024,  
             useWebWorker: true,      
             initialQuality: 0.7,
-            fileType: "image/jpeg" // Force JPEG format
+            fileType: "image/jpeg" 
         };
 
         setIsCompressing(true);
 
         try {
-            // 1. Compress
             const compressedBlob = await imageCompression(file, options);
             
-            // 2. --- CRITICAL FIX: RENAME FILE ---
-            // We create a new File object with a Timestamp name + .jpg extension.
-            // This ensures the backend saves it as a valid image file.
+            // Generate clean filename
             const timestamp = new Date().getTime();
-            const newFileName = `safety_capture_${user.id}_${timestamp}.jpg`;
+            const newFileName = `safety_img_${timestamp}.jpg`;
             
             const convertedFile = new File([compressedBlob], newFileName, {
                 type: 'image/jpeg',
                 lastModified: new Date().getTime()
             });
             
-            // 3. Set State
             setImage(convertedFile);
             setPreview(URL.createObjectURL(convertedFile));
-            
-            console.log(`Processed: ${newFileName} (${(convertedFile.size/1024/1024).toFixed(2)}MB)`);
+            console.log(`Processed: ${newFileName}`);
 
         } catch (error) {
             console.error("Compression failed:", error);
@@ -128,8 +120,6 @@ const SafetyRaiser = ({ user }) => {
             setIsCompressing(false);
         }
     };
-
-// ... rest of the component
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -153,7 +143,10 @@ const SafetyRaiser = ({ user }) => {
             formData.append('subAreaId', form.subAreaId || 0);
             formData.append('hazardType', form.hazardType);
             formData.append('description', form.description);
-            if (image) formData.append('safetyImage', image);
+            
+            if (image) {
+                formData.append('safetyImage', image);
+            }
 
             await safetyApi.createTicket(formData);
             
@@ -165,6 +158,7 @@ const SafetyRaiser = ({ user }) => {
             loadMyHistory(); 
 
         } catch (err) {
+            console.error("Submit Error:", err);
             notify("Failed to submit report.", "error");
         } finally {
             setSubmitting(false);
@@ -173,7 +167,6 @@ const SafetyRaiser = ({ user }) => {
 
     return (
         <div className="safety-raiser-page" style={styles.pageContainer}>
-            
             {/* LEFT SIDE: FORM */}
             <div style={styles.card}>
                 <div style={styles.header}>
@@ -182,116 +175,58 @@ const SafetyRaiser = ({ user }) => {
                 </div>
                 
                 <form onSubmit={handleSubmit} style={styles.form}>
-                    
-                    {/* --- ROW 1: Building & Area --- */}
+                    {/* ... Form Fields (Building, Area, etc) ... */}
                     <div style={styles.gridRow}>
                         <div style={styles.formGroup}>
                             <label>Building <span style={styles.req}>*</span></label>
-                            <select 
-                                style={styles.input} 
-                                value={form.buildingId} 
-                                onChange={e => setForm({...form, buildingId: e.target.value})} 
-                                required
-                            >
+                            <select style={styles.input} value={form.buildingId} onChange={e => setForm({...form, buildingId: e.target.value})} required>
                                 <option value="">Select...</option>
                                 {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                             </select>
                         </div>
-
                         <div style={styles.formGroup}>
                             <label>Area</label>
-                            <select 
-                                style={styles.input} 
-                                value={form.areaId} 
-                                onChange={e => setForm({...form, areaId: e.target.value})}
-                                disabled={!form.buildingId} 
-                            >
+                            <select style={styles.input} value={form.areaId} onChange={e => setForm({...form, areaId: e.target.value})} disabled={!form.buildingId}>
                                 <option value="">Select...</option>
                                 {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                             </select>
                         </div>
                     </div>
 
-                    {/* --- ROW 2: SubArea & Safety Issue --- */}
                     <div style={styles.gridRow}>
                         <div style={styles.formGroup}>
                             <label>Sub-Area</label>
-                            <select 
-                                style={styles.input} 
-                                value={form.subAreaId} 
-                                onChange={e => setForm({...form, subAreaId: e.target.value})}
-                                disabled={!form.areaId} 
-                            >
+                            <select style={styles.input} value={form.subAreaId} onChange={e => setForm({...form, subAreaId: e.target.value})} disabled={!form.areaId}>
                                 <option value="">Select...</option>
                                 {subAreas.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
                         </div>
-
                         <div style={styles.formGroup}>
                             <label>Safety Issue <span style={styles.req}>*</span></label>
-                            <select 
-                                style={styles.input}
-                                value={form.hazardType}
-                                onChange={e => setForm({...form, hazardType: e.target.value})}
-                                required
-                            >
+                            <select style={styles.input} value={form.hazardType} onChange={e => setForm({...form, hazardType: e.target.value})} required>
                                 <option value="">Select...</option>
                                 {hazards.map((h, i) => <option key={i} value={h}>{h}</option>)}
                             </select>
                         </div>
                     </div>
 
-                    {/* --- Description --- */}
                     <div style={styles.formGroup}>
                         <label>Description <span style={styles.req}>*</span></label>
-                        <textarea 
-                            style={{...styles.input, height:'80px', resize:'none'}} 
-                            placeholder="Describe the issue..."
-                            value={form.description}
-                            onChange={e => setForm({...form, description: e.target.value})}
-                            required
-                        />
+                        <textarea style={{...styles.input, height:'80px', resize:'none'}} placeholder="Describe the issue..." value={form.description} onChange={e => setForm({...form, description: e.target.value})} required />
                     </div>
 
-                    {/* --- Image Selection Section --- */}
                     <div style={styles.formGroup}>
                         <label>Photo Evidence</label>
+                        <input type="file" accept="image/*" id="safety-upload" onChange={handleFileSelect} style={{display: 'none'}} />
+                        <input type="file" accept="image/*" capture="environment" id="safety-camera" onChange={handleFileSelect} style={{display: 'none'}} />
                         
-                        {/* Hidden Inputs */}
-                        <input 
-                            type="file" 
-                            accept="image/*" 
-                            id="safety-upload" 
-                            onChange={handleFileSelect} 
-                            style={{display: 'none'}} 
-                        />
-                        <input 
-                            type="file" 
-                            accept="image/*" 
-                            capture="environment" // Forces Camera on Mobile
-                            id="safety-camera" 
-                            onChange={handleFileSelect} 
-                            style={{display: 'none'}} 
-                        />
-                        
-                        {/* Custom Buttons Area */}
                         {!preview && !isCompressing && (
                             <div style={styles.buttonRow}>
-                                {/* Capture Button */}
-                                <label htmlFor="safety-camera" style={styles.actionBtn}>
-                                    <span style={{fontSize:'1.3rem'}}>📷</span>
-                                    <span>Capture</span>
-                                </label>
-
-                                {/* Upload Button */}
-                                <label htmlFor="safety-upload" style={styles.actionBtn}>
-                                    <span style={{fontSize:'1.3rem'}}>📁</span>
-                                    <span>Upload</span>
-                                </label>
+                                <label htmlFor="safety-camera" style={styles.actionBtn}><span style={{fontSize:'1.3rem'}}>📷</span><span>Capture</span></label>
+                                <label htmlFor="safety-upload" style={styles.actionBtn}><span style={{fontSize:'1.3rem'}}>📁</span><span>Upload</span></label>
                             </div>
                         )}
 
-                        {/* Loading State for Compression */}
                         {isCompressing && (
                             <div style={styles.uploadArea}>
                                 <div className="spinner" style={{width:'24px', height:'24px', borderWidth:'3px'}}></div>
@@ -299,7 +234,6 @@ const SafetyRaiser = ({ user }) => {
                             </div>
                         )}
 
-                        {/* Preview State */}
                         {preview && !isCompressing && (
                             <div style={styles.previewContainer}>
                                 <img src={preview} alt="Evidence" style={styles.previewImg} />
@@ -314,15 +248,10 @@ const SafetyRaiser = ({ user }) => {
                 </form>
             </div>
 
-            {/* RIGHT SIDE: MY HISTORY */}
+            {/* RIGHT SIDE: HISTORY */}
             <div style={styles.historyCard} className="history-section">
                 <h4 style={styles.historyTitle}>My Recent Reports</h4>
-                
-                {loadingHistory ? (
-                    <p style={{color:'#64748b', textAlign:'center', fontSize:'0.9rem'}}>Loading...</p>
-                ) : myHistory.length === 0 ? (
-                    <div style={styles.emptyState}>No recent reports.</div>
-                ) : (
+                {loadingHistory ? <p style={{color:'#64748b', textAlign:'center', fontSize:'0.9rem'}}>Loading...</p> : myHistory.length === 0 ? <div style={styles.emptyState}>No recent reports.</div> : (
                     <div style={styles.historyList}>
                         {myHistory.map(t => (
                             <div key={t.TicketID} style={styles.historyItem}>
@@ -332,41 +261,18 @@ const SafetyRaiser = ({ user }) => {
                                 </div>
                                 <div style={{color:'#1e293b', fontWeight:'600', fontSize:'0.9rem'}}>{t.Keyword}</div>
                                 <div style={{fontSize:'0.85rem', color:'#64748b'}}>{t.BuildingName}</div>
-                                <div style={{fontSize:'0.75rem', color:'#94a3b8', marginTop:'4px'}}>
-                                    {new Date(t.CreatedAt).toLocaleDateString()}
-                                </div>
+                                <div style={{fontSize:'0.75rem', color:'#94a3b8', marginTop:'4px'}}>{new Date(t.CreatedAt).toLocaleDateString()}</div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* RESPONSIVE CSS */}
             <style>{`
-                .safety-raiser-page {
-                    display: flex;
-                    gap: 20px;
-                    max-width: 1000px;
-                    margin: 0 auto;
-                    align-items: flex-start;
-                }
-                .history-section {
-                    flex: 1;
-                }
-                @media (max-width: 900px) {
-                    .safety-raiser-page {
-                        flex-direction: column; 
-                    }
-                    .history-section {
-                        width: 100% !important;
-                        margin-top: 10px;
-                    }
-                }
-                .spinner {
-                    border: 3px solid #f3f3f3; border-top: 3px solid #1e293b;
-                    border-radius: 50%; width: 24px; height: 24px;
-                    animation: spin 1s linear infinite;
-                }
+                .safety-raiser-page { display: flex; gap: 20px; max-width: 1000px; margin: 0 auto; align-items: flex-start; }
+                .history-section { flex: 1; }
+                @media (max-width: 900px) { .safety-raiser-page { flex-direction: column; } .history-section { width: 100% !important; margin-top: 10px; } }
+                .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #1e293b; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
                 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `}</style>
         </div>
@@ -374,92 +280,28 @@ const SafetyRaiser = ({ user }) => {
 };
 
 const styles = {
-    // --- FORM CARD ---
-    card: { 
-        flex: 2,
-        width: '100%', 
-        background: 'white', 
-        padding: '25px', 
-        borderRadius: '16px', 
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', 
-        borderTop: '4px solid #1e293b' 
-    },
+    card: { flex: 2, width: '100%', background: 'white', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', borderTop: '4px solid #1e293b' },
     header: { marginBottom: '20px' },
     form: { display: 'flex', flexDirection: 'column', gap: '15px' },
     gridRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
     formGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
     req: { color: '#ef4444', marginLeft: '2px' }, 
-    
-    input: { 
-        padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', 
-        background: '#f8fafc', fontSize: '0.95rem', color: '#1e293b', outline: 'none', transition: 'all 0.2s'
-    },
-    
-    // --- Button Row for Camera/Upload ---
+    input: { padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.95rem', color: '#1e293b', outline: 'none', transition: 'all 0.2s' },
     buttonRow: { display: 'flex', gap: '15px' },
-    actionBtn: {
-        flex: 1,
-        border: '2px dashed #cbd5e0',
-        borderRadius: '12px',
-        padding: '15px',
-        textAlign: 'center',
-        background: '#f8fafc',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '5px',
-        color: '#64748b',
-        fontWeight: '500',
-        transition: 'all 0.2s'
-    },
-
-    // --- Loading Area ---
-    uploadArea: { 
-        border: '2px dashed #cbd5e0', padding: '10px', borderRadius: '12px', textAlign: 'center', 
-        background: '#f8fafc', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' 
-    },
-
+    actionBtn: { flex: 1, border: '2px dashed #cbd5e0', borderRadius: '12px', padding: '15px', textAlign: 'center', background: '#f8fafc', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', color: '#64748b', fontWeight: '500', transition: 'all 0.2s' },
+    uploadArea: { border: '2px dashed #cbd5e0', padding: '10px', borderRadius: '12px', textAlign: 'center', background: '#f8fafc', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
     previewContainer: { position: 'relative', width: '100%', height: '180px', borderRadius:'12px', overflow:'hidden', border:'1px solid #e2e8f0' },
     previewImg: { width: '100%', height: '100%', objectFit: 'cover' },
-    removeBtn: { 
-        position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', 
-        background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '20px', 
-        padding: '8px 16px', cursor: 'pointer', fontSize:'0.85rem', fontWeight:'600'
-    },
-    
-    submitBtn: { 
-        marginTop: '10px', padding: '14px', background: '#1e293b', color: 'white', 
-        border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', 
-        boxShadow: '0 4px 6px rgba(30, 41, 59, 0.3)', transition: 'background 0.2s',
-        opacity: (props) => props.disabled ? 0.7 : 1
-    },
-
-    // --- HISTORY CARD ---
-    historyCard: {
-        background: 'white',
-        padding: '20px',
-        borderRadius: '16px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
-        borderTop: '4px solid #334155' 
-    },
+    removeBtn: { position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.7)', color: 'white', border: 'none', borderRadius: '20px', padding: '8px 16px', cursor: 'pointer', fontSize:'0.85rem', fontWeight:'600' },
+    submitBtn: { marginTop: '10px', padding: '14px', background: '#1e293b', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: '600', cursor: 'pointer', boxShadow: '0 4px 6px rgba(30, 41, 59, 0.3)', transition: 'background 0.2s', opacity: (props) => props.disabled ? 0.7 : 1 },
+    historyCard: { background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', borderTop: '4px solid #334155' },
     historyTitle: { margin: '0 0 15px 0', color: '#1e293b', fontSize: '1.1rem' },
     emptyState: { color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' },
     historyList: { display: 'flex', flexDirection: 'column', gap: '10px' },
-    historyItem: { 
-        padding: '12px', 
-        borderRadius: '10px', 
-        background: '#f8fafc', 
-        border: '1px solid #e2e8f0' 
-    },
+    historyItem: { padding: '12px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0' },
     historyHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '4px' },
-    
     statusBadge: (status) => {
-        const colors = { 
-            'Open': { bg: '#fee2e2', text: '#ef4444' },
-            'Assigned': { bg: '#fef3c7', text: '#d97706' },
-            'Completed': { bg: '#dcfce7', text: '#166534' }
-        };
+        const colors = { 'Open': { bg: '#fee2e2', text: '#ef4444' }, 'Assigned': { bg: '#fef3c7', text: '#d97706' }, 'Completed': { bg: '#dcfce7', text: '#166534' } };
         const c = colors[status] || { bg: '#f1f5f9', text: '#475569' };
         return { background: c.bg, color: c.text, padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase' };
     }

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext';
-import { IMAGE_BASE_URL } from '../../config';
+// 1. Import the reusable component
+import ImageZoomModal from '../common/ImageZoomModal';
 
 // --- PROFESSIONAL ICONS ---
 const Icons = {
@@ -17,10 +18,9 @@ const SafetyTechnician = ({ user }) => {
     const { notify, confirm } = useNotification(); 
     const [myTasks, setMyTasks] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // 2. State stores the raw path string
     const [selectedImage, setSelectedImage] = useState(null); 
-
-    // Base URL for images
-    const API_BASE_URL = 'http://localhost:5000';
 
     useEffect(() => {
         loadTasks();
@@ -30,7 +30,6 @@ const SafetyTechnician = ({ user }) => {
         setLoading(true);
         try {
             const allTickets = await safetyApi.getAllTickets(user.location);
-            // Filter assigned tasks for this user
             const assigned = allTickets.filter(t => String(t.AssignedToID) === String(user.id));
             setMyTasks(assigned);
         } catch (err) {
@@ -51,28 +50,6 @@ const SafetyTechnician = ({ user }) => {
         } catch (err) {
             notify("Failed to update status", "error");
         }
-    };
-// --- IMPROVED IMAGE URL HANDLER ---
-    const getImageUrl = (imagePath) => {
-        if (!imagePath) return null;
-
-        // 1. If it's already a full URL (like Cloudinary), just return it
-        if (imagePath.startsWith('http')) return imagePath;
-
-        // 2. Fix Windows Path Issues
-        let cleanPath = imagePath.replace(/\\/g, '/');
-
-        // 3. Ensure slash at start
-        if (!cleanPath.startsWith('/')) {
-            cleanPath = `/${cleanPath}`;
-        }
-
-        // 4. Combine URL
-        const fullUrl = `${IMAGE_BASE_URL}${cleanPath}`;
-
-        // 5. --- FIX: Add Cache Buster ---
-        // This ensures the browser doesn't serve a stale/broken version
-        return `${fullUrl}?t=${new Date().getTime()}`;
     };
 
     return (
@@ -122,7 +99,8 @@ const SafetyTechnician = ({ user }) => {
                         {/* --- VIEW PHOTO BUTTON --- */}
                         {task.ImageUrl && (
                             <button 
-                                onClick={() => setSelectedImage(getImageUrl(task.ImageUrl))}
+                                // 3. Pass raw path to state (Component handles URL)
+                                onClick={() => setSelectedImage(task.ImageUrl)}
                                 style={styles.viewPhotoBtn}
                             >
                                 <Icons.Photo /> View Image
@@ -151,14 +129,12 @@ const SafetyTechnician = ({ user }) => {
                 ))}
             </div>
 
-            {/* --- IMAGE MODAL --- */}
+            {/* --- 4. USE REUSABLE COMPONENT --- */}
             {selectedImage && (
-                <div style={styles.modalOverlay} onClick={() => setSelectedImage(null)}>
-                    <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
-                        <img src={selectedImage} alt="Evidence" style={styles.modalImg} />
-                        <button onClick={() => setSelectedImage(null)} style={styles.closeModal}>&times;</button>
-                    </div>
-                </div>
+                <ImageZoomModal 
+                    imagePath={selectedImage} 
+                    onClose={() => setSelectedImage(null)} 
+                />
             )}
 
             <style>{`
@@ -282,12 +258,6 @@ const styles = {
         background: status === 'In Progress' ? '#ffedd5' : (status === 'Completed' ? '#dcfce7' : '#f1f5f9'),
         color: status === 'In Progress' ? '#c2410c' : (status === 'Completed' ? '#15803d' : '#475569')
     }),
-
-    // Modal Styles
-    modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px', backdropFilter:'blur(4px)' },
-    modalContent: { position: 'relative', maxWidth: '90%', maxHeight: '90%' },
-    modalImg: { maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' },
-    closeModal: { position: 'absolute', top: '-40px', right: '-10px', background: 'transparent', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' }
 };
 
 export default SafetyTechnician;
