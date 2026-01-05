@@ -19,23 +19,21 @@ const ImageZoomModal = ({ imagePath, onClose }) => {
     // --- ROBUST URL GENERATOR ---
     const getSafeUrl = (path) => {
         if (!path) return '';
+
+        // 1. DATABASE STORAGE (Base64) - The Fix for "Localhost" issues
+        // If the path starts with "data:", it is the raw image. Return it directly.
+        if (path.startsWith('data:')) return path;
+
+        // 2. External Links
         if (path.startsWith('http')) return path; 
 
-        // 1. Clean Windows slashes
+        // 3. Fallback for Old Images (File System)
+        // Only runs if the image is NOT stored in the DB as Base64
         let clean = path.replace(/\\/g, '/');
-
-        // 2. Remove accidental prefixes
         clean = clean.replace(/^public\//, '').replace(/^backend\//, '');
-
-        // 3. Remove leading slash
         if (clean.startsWith('/')) clean = clean.substring(1);
+        if (!clean.startsWith('uploads/')) clean = 'uploads/' + clean;
 
-        // 4. Default Logic: Ensure it starts with uploads/
-        if (!clean.startsWith('uploads/')) {
-            clean = 'uploads/' + clean;
-        }
-
-        // 5. Construct URL + Cache Buster
         return `${IMAGE_BASE_URL}/${clean}?t=${Date.now()}`;
     };
 
@@ -47,7 +45,7 @@ const ImageZoomModal = ({ imagePath, onClose }) => {
                 
                 {/* HEADER */}
                 <div style={styles.header}>
-                    <span style={styles.title}>Image View</span>
+                    <span style={styles.title}>Evidence View</span>
                     <button onClick={onClose} style={styles.closeBtn}>&times;</button>
                 </div>
 
@@ -59,7 +57,7 @@ const ImageZoomModal = ({ imagePath, onClose }) => {
                             <ImageOffIcon />
                             <h3 style={{color:'#1e293b', margin:'0 0 5px'}}>Image Not Available</h3>
                             <p style={{color:'#64748b', fontSize:'0.9rem', textAlign:'center', maxWidth:'80%'}}>
-                                The file could not be loaded. It may have been deleted or moved.
+                                The file could not be loaded from storage.
                             </p>
                         </div>
                     ) : (
@@ -106,22 +104,20 @@ const ImageZoomModal = ({ imagePath, onClose }) => {
     );
 };
 
-// --- STYLES ---
+// --- STYLES (Light Theme + Blur) ---
 const styles = {
     overlay: {
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        // Semi-transparent dark background to make the dashboard behind visible but dim
         backgroundColor: 'rgba(0, 0, 0, 0.6)', 
         zIndex: 2000,
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         padding: '20px',
-        // BLUR EFFECT ON THE BACKGROUND
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
     },
     container: {
         width: '100%', maxWidth: '900px', height: '80vh',
-        backgroundColor: '#ffffff', // White Background (Light Mode)
+        backgroundColor: '#ffffff', 
         borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex', flexDirection: 'column',
@@ -143,10 +139,10 @@ const styles = {
     },
     content: {
         flex: 1, position: 'relative',
-        backgroundColor: '#f8fafc', // Very light gray for image area
+        backgroundColor: '#f8fafc',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden',
-        backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', // Subtle pattern
+        backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
         backgroundSize: '20px 20px'
     },
     imageWrapper: { width: '100%', height: '100%' },
@@ -156,41 +152,27 @@ const styles = {
     controls: {
         position: 'absolute', bottom: '25px',
         display: 'flex', alignItems: 'center', gap: '8px',
-        backgroundColor: 'rgba(255, 255, 255, 0.95)', // Glassy White
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         padding: '8px 12px', borderRadius: '50px',
         border: '1px solid #e2e8f0',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
         backdropFilter: 'blur(4px)'
     },
     ctrlBtn: {
-        background: 'white', 
-        color: '#334155', 
-        border: '1px solid #cbd5e0',
-        width: '40px', height: '40px', borderRadius: '50%', // Circle buttons
-        cursor: 'pointer', 
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        transition: 'all 0.2s',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+        background: 'white', color: '#334155', border: '1px solid #cbd5e0',
+        width: '40px', height: '40px', borderRadius: '50%',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
     },
     resetBtn: {
-        background: '#1e293b', // Dark button for primary action
-        color: 'white', 
-        border: 'none',
-        padding: '0 20px', // Horizontal padding so text fits
-        height: '40px', 
-        borderRadius: '20px', // Pill shape
-        cursor: 'pointer', 
-        fontWeight: '600',
-        fontSize: '0.9rem',
-        transition: 'all 0.2s',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        whiteSpace: 'nowrap' // Prevents text wrapping
+        background: '#1e293b', color: 'white', border: 'none',
+        padding: '0 20px', height: '40px', borderRadius: '20px',
+        cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem',
+        transition: 'all 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        whiteSpace: 'nowrap'
     },
-    divider: {
-        width: '1px', height: '24px', background: '#cbd5e0', margin: '0 5px'
-    },
+    divider: { width: '1px', height: '24px', background: '#cbd5e0', margin: '0 5px' },
     
-    // Error State
     errorBox: { 
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         height: '100%', width: '100%', padding: '20px'

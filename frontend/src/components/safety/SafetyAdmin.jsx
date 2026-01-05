@@ -2,16 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { safetyApi } from '../../services/safetyApi';
 import { useNotification } from '../../context/NotificationContext'; 
 import SafetyMasterConfig from './SafetyMasterConfig';
-import ImageZoomModal from '../common/ImageZoomModal'; // Uses the new component
+// Import the Reusable Component
+import ImageZoomModal from '../common/ImageZoomModal';
 
 const SafetyAdmin = ({ user }) => {
     const { notify } = useNotification();
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     
+    // UI States
     const [showConfig, setShowConfig] = useState(false);
     const [selectedTicket, setSelectedTicket] = useState(null);
-    const [viewImage, setViewImage] = useState(null); // Just stores the string path
+    const [viewImage, setViewImage] = useState(null); 
 
     useEffect(() => {
         loadData();
@@ -41,6 +43,8 @@ const SafetyAdmin = ({ user }) => {
             notify("Failed to delete ticket", "error");
         }
     };
+
+    // NOTE: getImageUrl function removed. We use the Base64 string directly from DB.
 
     return (
         <div style={styles.container}>
@@ -156,8 +160,8 @@ const SafetyAdmin = ({ user }) => {
                             {selectedTicket.ImageUrl && (
                                 <div style={{marginTop:'20px'}}>
                                     <label style={styles.label}>Evidence:</label>
-                                    {/* Just pass the raw path, component handles URL logic */}
                                     <button 
+                                        // DIRECTLY PASS THE IMAGE DATA - No helper function needed!
                                         onClick={() => setViewImage(selectedTicket.ImageUrl)}
                                         style={styles.viewPhotoBtn}
                                     >
@@ -174,7 +178,7 @@ const SafetyAdmin = ({ user }) => {
                 </div>
             )}
 
-            {/* ZOOM MODAL (Handles Error & Zoom) */}
+            {/* ZOOM MODAL COMPONENT */}
             {viewImage && (
                 <ImageZoomModal 
                     imagePath={viewImage} 

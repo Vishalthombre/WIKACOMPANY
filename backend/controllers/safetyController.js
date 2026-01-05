@@ -47,19 +47,20 @@ exports.getMasterData = async (req, res) => {
     }
 };
 
-// --- 2. CREATE TICKET (With SubArea) ---
+// --- 2. CREATE TICKET (Base64 Image Storage) ---
 exports.createTicket = async (req, res) => {
     console.log("📥 [Safety] Ticket Data:", req.body);
 
     const { raiserId, raiserName, location, buildingId, areaId, subAreaId, hazardType, description } = req.body;
     
-    let imageUrl = null;
-    
-    // --- FIX IS HERE ---
-    // 1. We removed the leading '/' so it stores "uploads/safety/..." (clean relative path)
-    // 2. This matches the folder structure defined in your routes
+    let imageBase64 = null;
+
+    // --- CONVERT IMAGE TO BASE64 STRING ---
+    // If a file was uploaded, convert its buffer to a Base64 string.
+    // This string IS the image. It will be stored directly in the DB.
     if (req.file) {
-        imageUrl = 'uploads/safety/' + req.file.filename;
+        const b64 = req.file.buffer.toString('base64');
+        imageBase64 = `data:${req.file.mimetype};base64,${b64}`;
     }
 
     try {
@@ -92,7 +93,9 @@ exports.createTicket = async (req, res) => {
             .input('sname', sql.NVarChar, subAreaName)
             .input('kw', sql.NVarChar, hazardType)
             .input('desc', sql.NVarChar, description)
-            .input('img', sql.NVarChar, imageUrl)
+            // Save the HUGE Base64 string directly to the DB.
+            // Note: Ensure your DB column 'ImageUrl' is NVARCHAR(MAX)
+            .input('img', sql.NVarChar(sql.MAX), imageBase64) 
             .query(`
                 INSERT INTO SafetyTickets 
                 (RaiserID, RaiserName, Location, BuildingID, BuildingName, AreaID, AreaName, SubAreaID, SubAreaName, Keyword, Description, ImageUrl, Status)
