@@ -47,7 +47,7 @@ const ImageZoomModal = ({ imagePath, onClose }) => {
                 
                 {/* HEADER */}
                 <div style={styles.header}>
-                    <span style={styles.title}>Evidence View</span>
+                    <span style={styles.title}>Image View</span>
                     <button onClick={onClose} style={styles.closeBtn}>&times;</button>
                 </div>
 
